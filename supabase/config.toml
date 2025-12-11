@@ -1,0 +1,10 @@
+project_id = "yyedzpamdmabmxgirnme"
+
+[functions.search-users]
+verify_jwt = true
+
+[functions.suggest-budget-alternatives]
+verify_jwt = true
+
+[functions.create-auto-list]
+verify_jwt = true
