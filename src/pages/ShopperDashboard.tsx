@@ -589,6 +589,16 @@ const ShopperDashboard = () => {
     }
   };
 
+  // Compute selected list details for sidebar
+  const selectedList = shoppingLists.find(l => l.id === selectedListId);
+  const selectedListName = selectedList?.name;
+  const assignedStore = selectedListId ? listAssignedStores[selectedListId] : null;
+  const assignedStoreName = assignedStore ? `${assignedStore.store_hq?.name} - ${assignedStore.location}` : null;
+  const selectedListTotalData = selectedListId ? listTotals[selectedListId] : null;
+  const selectedListTotal = selectedListTotalData 
+    ? (typeof selectedListTotalData === 'number' ? selectedListTotalData : selectedListTotalData.inStock)
+    : null;
+
   return (
     <SmartShopperLayout
       userRole="shopper"
@@ -599,6 +609,9 @@ const ShopperDashboard = () => {
       trustScore={4.8}
       totalSavings={0}
       currencySymbol={currencySymbol}
+      selectedListName={selectedListName}
+      assignedStoreName={assignedStoreName}
+      selectedListTotal={selectedListTotal}
     >
       <DashboardContent 
         activeSection={activeSection}

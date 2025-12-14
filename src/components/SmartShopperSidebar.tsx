@@ -92,6 +92,9 @@ interface SmartShopperSidebarProps {
   totalSavings?: number;
   currencySymbol?: string;
   displayName?: string;
+  selectedListName?: string;
+  assignedStoreName?: string | null;
+  selectedListTotal?: number | null;
 }
 
 function SidebarHeaderSection({ userRole }: { userRole: UserRole }) {
@@ -188,27 +191,52 @@ function NavigationMenu({
 function QuickStatsPanel({ 
   trustScore = 4.8, 
   totalSavings = 0, 
-  currencySymbol = '$' 
+  currencySymbol = '$',
+  selectedListName,
+  assignedStoreName,
+  selectedListTotal,
 }: { 
   trustScore?: number; 
   totalSavings?: number; 
   currencySymbol?: string;
+  selectedListName?: string;
+  assignedStoreName?: string | null;
+  selectedListTotal?: number | null;
 }) {
   return (
     <div className="mx-3 mb-3 p-4 bg-green-50 rounded-xl border border-green-100">
       <p className="text-[11px] uppercase text-gray-500 font-semibold tracking-wider mb-3">Quick Stats</p>
       <div className="space-y-3">
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Trust Score</span>
-          <div className="flex items-center gap-1.5">
-            <Star className="h-4 w-4 text-yellow-500 fill-yellow-500" />
-            <span className="font-semibold text-gray-800">{trustScore.toFixed(1)}</span>
-          </div>
+        {/* Selected Shopping List */}
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-gray-500">Selected List</span>
+          <span className="font-semibold text-gray-800 text-sm truncate">
+            {selectedListName || "None selected"}
+          </span>
         </div>
-        <div className="flex items-center justify-between">
-          <span className="text-sm text-gray-600">Total Savings</span>
-          <span className="font-semibold text-green-700">
-            {currencySymbol}{totalSavings.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+        
+        {/* Assigned Store */}
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-gray-500">Assigned Store</span>
+          <span className={cn(
+            "font-semibold text-sm truncate",
+            assignedStoreName ? "text-blue-700" : "text-gray-400"
+          )}>
+            {assignedStoreName || "Unassigned"}
+          </span>
+        </div>
+        
+        {/* List Total */}
+        <div className="flex flex-col gap-1">
+          <span className="text-xs text-gray-500">List Total</span>
+          <span className={cn(
+            "font-semibold text-sm",
+            selectedListTotal !== null && selectedListTotal !== undefined ? "text-green-700" : "text-gray-400"
+          )}>
+            {selectedListTotal !== null && selectedListTotal !== undefined 
+              ? `${currencySymbol}${selectedListTotal.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`
+              : "—"
+            }
           </span>
         </div>
       </div>
@@ -253,6 +281,9 @@ export function SmartShopperSidebar({
   trustScore,
   totalSavings,
   currencySymbol,
+  selectedListName,
+  assignedStoreName,
+  selectedListTotal,
 }: SmartShopperSidebarProps) {
   const showStats = userRole === 'shopper' || userRole === 'super_admin';
   
@@ -273,7 +304,10 @@ export function SmartShopperSidebar({
           <QuickStatsPanel 
             trustScore={trustScore} 
             totalSavings={totalSavings} 
-            currencySymbol={currencySymbol} 
+            currencySymbol={currencySymbol}
+            selectedListName={selectedListName}
+            assignedStoreName={assignedStoreName}
+            selectedListTotal={selectedListTotal}
           />
         )}
       </SidebarContent>
@@ -295,6 +329,9 @@ interface SmartShopperLayoutProps {
   totalSavings?: number;
   currencySymbol?: string;
   pageTitle?: string;
+  selectedListName?: string;
+  assignedStoreName?: string | null;
+  selectedListTotal?: number | null;
 }
 
 export function SmartShopperLayout({
@@ -308,6 +345,9 @@ export function SmartShopperLayout({
   totalSavings,
   currencySymbol,
   pageTitle,
+  selectedListName,
+  assignedStoreName,
+  selectedListTotal,
 }: SmartShopperLayoutProps) {
   return (
     <SidebarProvider>
@@ -321,6 +361,9 @@ export function SmartShopperLayout({
           trustScore={trustScore}
           totalSavings={totalSavings}
           currencySymbol={currencySymbol}
+          selectedListName={selectedListName}
+          assignedStoreName={assignedStoreName}
+          selectedListTotal={selectedListTotal}
         />
         
         <main className="flex-1 flex flex-col min-w-0">
