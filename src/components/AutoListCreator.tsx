@@ -4,10 +4,9 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Checkbox } from "@/components/ui/checkbox";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Sparkles, Loader2 } from "lucide-react";
+import { Sparkles, Loader2, CheckCircle2, XCircle } from "lucide-react";
 import { ScrollArea } from "@/components/ui/scroll-area";
 
 interface AutoListCreatorProps {
@@ -15,10 +14,14 @@ interface AutoListCreatorProps {
   currencySymbol: string;
 }
 
-interface Store {
-  id: string;
-  location: string;
-  hq_id: string;
+interface MatchedProduct {
+  gtin: string;
+  description: string;
+  searchTerm: string;
+}
+
+interface UnmatchedItem {
+  searchTerm: string;
 }
 
 export const AutoListCreator = ({ onListCreated, currencySymbol }: AutoListCreatorProps) => {
@@ -26,105 +29,152 @@ export const AutoListCreator = ({ onListCreated, currencySymbol }: AutoListCreat
   const [listName, setListName] = useState("");
   const [items, setItems] = useState("");
   const [budget, setBudget] = useState("");
-  const [stores, setStores] = useState<Store[]>([]);
-  const [selectedStores, setSelectedStores] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
-  const [loadingStores, setLoadingStores] = useState(false);
-
-  const loadStores = async () => {
-    setLoadingStores(true);
-    try {
-      const { data, error } = await supabase
-        .from("stores")
-        .select("id, location, hq_id")
-        .order("location");
-
-      if (error) throw error;
-      setStores(data || []);
-    } catch (error) {
-      console.error("Error loading stores:", error);
-      toast.error("Failed to load stores");
-    } finally {
-      setLoadingStores(false);
-    }
-  };
+  const [matchedProducts, setMatchedProducts] = useState<MatchedProduct[]>([]);
+  const [unmatchedItems, setUnmatchedItems] = useState<UnmatchedItem[]>([]);
+  const [step, setStep] = useState<'input' | 'review'>('input');
 
   const handleOpenChange = (isOpen: boolean) => {
     setOpen(isOpen);
-    if (isOpen && stores.length === 0) {
-      loadStores();
+    if (!isOpen) {
+      // Reset state when closing
+      setStep('input');
+      setMatchedProducts([]);
+      setUnmatchedItems([]);
     }
   };
 
-  const toggleStore = (storeId: string) => {
-    setSelectedStores(prev => {
-      if (prev.includes(storeId)) {
-        return prev.filter(id => id !== storeId);
-      } else if (prev.length < 5) {
-        return [...prev, storeId];
-      } else {
-        toast.error("You can select up to 5 stores");
-        return prev;
-      }
-    });
-  };
-
-  const handleCreateAutoList = async () => {
+  const searchProducts = async () => {
     if (!listName.trim()) {
       toast.error("Please enter a list name");
       return;
     }
     if (!items.trim()) {
-      toast.error("Please enter items you want");
-      return;
-    }
-    if (!budget || parseFloat(budget) <= 0) {
-      toast.error("Please enter a valid budget");
-      return;
-    }
-    if (selectedStores.length === 0) {
-      toast.error("Please select at least one store");
+      toast.error("Please enter items separated by commas");
       return;
     }
 
     setLoading(true);
     try {
-      // Check if user is authenticated
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (sessionError || !session) {
-        toast.error("You must be logged in to create an auto list");
+      // Parse comma-separated items
+      const itemList = items
+        .split(',')
+        .map(item => item.trim().toLowerCase())
+        .filter(item => item.length > 0);
+
+      if (itemList.length === 0) {
+        toast.error("Please enter at least one item");
         setLoading(false);
         return;
       }
 
-      const { data, error } = await supabase.functions.invoke("create-auto-list", {
-        body: {
-          listName: listName.trim(),
-          items: items.trim(),
-          budget: parseFloat(budget),
-          storeIds: selectedStores,
-          currencySymbol
+      const matched: MatchedProduct[] = [];
+      const unmatched: UnmatchedItem[] = [];
+
+      // Search for each item in the products table
+      for (const searchTerm of itemList) {
+        const { data, error } = await supabase
+          .from("products")
+          .select("gtin, description")
+          .ilike("description", `%${searchTerm}%`)
+          .limit(1);
+
+        if (error) {
+          console.error("Error searching for product:", error);
+          continue;
         }
-      });
 
-      if (error) throw error;
+        if (data && data.length > 0) {
+          // Check if this product is already matched (avoid duplicates)
+          if (!matched.some(m => m.gtin === data[0].gtin)) {
+            matched.push({
+              gtin: data[0].gtin,
+              description: data[0].description,
+              searchTerm
+            });
+          }
+        } else {
+          unmatched.push({ searchTerm });
+        }
+      }
 
-      if (data.error) {
-        toast.error(data.error);
+      setMatchedProducts(matched);
+      setUnmatchedItems(unmatched);
+      setStep('review');
+
+      if (matched.length === 0) {
+        toast.error("No products found matching your items");
+      } else if (unmatched.length > 0) {
+        toast.warning(`Found ${matched.length} products. ${unmatched.length} items not found.`);
+      } else {
+        toast.success(`Found ${matched.length} products!`);
+      }
+    } catch (error: any) {
+      console.error("Error searching products:", error);
+      toast.error("Failed to search products");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const removeMatchedProduct = (gtin: string) => {
+    setMatchedProducts(prev => prev.filter(p => p.gtin !== gtin));
+  };
+
+  const handleCreateList = async () => {
+    if (matchedProducts.length === 0) {
+      toast.error("No products to add to list");
+      return;
+    }
+
+    setLoading(true);
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        toast.error("You must be logged in to create a list");
+        setLoading(false);
         return;
       }
 
-      toast.success("Auto list created successfully!");
+      // Create the shopping list
+      const { data: listData, error: listError } = await supabase
+        .from("shopping_lists")
+        .insert({
+          name: listName.trim(),
+          user_id: user.id,
+          budget: budget ? parseFloat(budget) : null
+        })
+        .select()
+        .single();
+
+      if (listError) throw listError;
+
+      // Add all matched products to the list
+      const listItems = matchedProducts.map(product => ({
+        shopping_list_id: listData.id,
+        product_gtin: product.gtin,
+        quantity: 1
+      }));
+
+      const { error: itemsError } = await supabase
+        .from("shopping_list_items")
+        .insert(listItems);
+
+      if (itemsError) throw itemsError;
+
+      toast.success(`List "${listName}" created with ${matchedProducts.length} items!`);
       setOpen(false);
       setListName("");
       setItems("");
       setBudget("");
-      setSelectedStores([]);
+      setMatchedProducts([]);
+      setUnmatchedItems([]);
+      setStep('input');
       onListCreated();
     } catch (error: any) {
-      console.error("Error creating auto list:", error);
-      toast.error(error.message || "Failed to create auto list");
+      console.error("Error creating list:", error);
+      toast.error(error.message || "Failed to create list");
     } finally {
       setLoading(false);
     }
@@ -140,97 +190,139 @@ export const AutoListCreator = ({ onListCreated, currencySymbol }: AutoListCreat
       </DialogTrigger>
       <DialogContent className="max-w-2xl max-h-[90vh]">
         <DialogHeader>
-          <DialogTitle>Create Auto List with AI</DialogTitle>
+          <DialogTitle>Create Auto List</DialogTitle>
           <DialogDescription>
-            Tell us what items you need and your budget. AI will create an optimized shopping list from your selected stores.
+            Enter items separated by commas and we'll find matching products for your list.
           </DialogDescription>
         </DialogHeader>
 
         <ScrollArea className="max-h-[calc(90vh-200px)] pr-4">
-          <div className="space-y-4">
-            <div>
-              <Label htmlFor="listName">List Name</Label>
-              <Input
-                id="listName"
-                placeholder="e.g., Weekly Groceries"
-                value={listName}
-                onChange={(e) => setListName(e.target.value)}
-              />
-            </div>
+          {step === 'input' ? (
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="listName">List Name *</Label>
+                <Input
+                  id="listName"
+                  placeholder="e.g., Weekly Groceries"
+                  value={listName}
+                  onChange={(e) => setListName(e.target.value)}
+                />
+              </div>
 
-            <div>
-              <Label htmlFor="items">Items You Want</Label>
-              <Textarea
-                id="items"
-                placeholder="Enter items separated by commas (e.g., washing powder, sugar, salt, bathing soap)"
-                value={items}
-                onChange={(e) => setItems(e.target.value)}
-                rows={4}
-              />
-            </div>
+              <div>
+                <Label htmlFor="items">Items (comma separated) *</Label>
+                <Textarea
+                  id="items"
+                  placeholder="e.g., milk, bread, beans, sugar, salt, eggs"
+                  value={items}
+                  onChange={(e) => setItems(e.target.value)}
+                  rows={4}
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Enter item names separated by commas. We'll search for matching products.
+                </p>
+              </div>
 
-            <div>
-              <Label htmlFor="budget">Budget ({currencySymbol})</Label>
-              <Input
-                id="budget"
-                type="number"
-                placeholder="500"
-                value={budget}
-                onChange={(e) => setBudget(e.target.value)}
-                min="0"
-                step="0.01"
-              />
+              <div>
+                <Label htmlFor="budget">Budget ({currencySymbol}) - Optional</Label>
+                <Input
+                  id="budget"
+                  type="number"
+                  placeholder="e.g., 500"
+                  value={budget}
+                  onChange={(e) => setBudget(e.target.value)}
+                  min="0"
+                  step="0.01"
+                />
+              </div>
             </div>
+          ) : (
+            <div className="space-y-4">
+              <div>
+                <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  Matched Products ({matchedProducts.length})
+                </h3>
+                {matchedProducts.length > 0 ? (
+                  <div className="border rounded-md divide-y max-h-60 overflow-y-auto">
+                    {matchedProducts.map((product) => (
+                      <div key={product.gtin} className="flex items-center justify-between p-2 hover:bg-accent/50">
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{product.description}</p>
+                          <p className="text-xs text-muted-foreground">
+                            Matched: "{product.searchTerm}"
+                          </p>
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => removeMatchedProduct(product.gtin)}
+                          className="text-destructive hover:text-destructive"
+                        >
+                          Remove
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <p className="text-sm text-muted-foreground">No products matched</p>
+                )}
+              </div>
 
-            <div>
-              <Label>Select Stores (up to 5)</Label>
-              {loadingStores ? (
-                <div className="flex items-center justify-center py-4">
-                  <Loader2 className="h-6 w-6 animate-spin" />
-                </div>
-              ) : (
-                <div className="border rounded-md p-4 space-y-2 max-h-60 overflow-y-auto">
-                  {stores.map((store) => (
-                    <div key={store.id} className="flex items-center space-x-2">
-                      <Checkbox
-                        id={store.id}
-                        checked={selectedStores.includes(store.id)}
-                        onCheckedChange={() => toggleStore(store.id)}
-                      />
-                      <label
-                        htmlFor={store.id}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                      >
-                        {store.location}
-                      </label>
-                    </div>
-                  ))}
+              {unmatchedItems.length > 0 && (
+                <div>
+                  <h3 className="font-semibold text-sm mb-2 flex items-center gap-2">
+                    <XCircle className="h-4 w-4 text-red-600" />
+                    Not Found ({unmatchedItems.length})
+                  </h3>
+                  <div className="border rounded-md p-2 bg-destructive/5">
+                    <p className="text-sm text-muted-foreground">
+                      {unmatchedItems.map(item => item.searchTerm).join(', ')}
+                    </p>
+                  </div>
                 </div>
               )}
-              <p className="text-sm text-muted-foreground mt-2">
-                Selected: {selectedStores.length}/5
-              </p>
             </div>
-          </div>
+          )}
         </ScrollArea>
 
         <div className="flex justify-end gap-2 pt-4 border-t">
-          <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
-            Cancel
-          </Button>
-          <Button onClick={handleCreateAutoList} disabled={loading}>
-            {loading ? (
-              <>
-                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                Creating...
-              </>
-            ) : (
-              <>
-                <Sparkles className="h-4 w-4 mr-2" />
-                Create List
-              </>
-            )}
-          </Button>
+          {step === 'input' ? (
+            <>
+              <Button variant="outline" onClick={() => setOpen(false)} disabled={loading}>
+                Cancel
+              </Button>
+              <Button onClick={searchProducts} disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Searching...
+                  </>
+                ) : (
+                  <>
+                    <Sparkles className="h-4 w-4 mr-2" />
+                    Find Products
+                  </>
+                )}
+              </Button>
+            </>
+          ) : (
+            <>
+              <Button variant="outline" onClick={() => setStep('input')} disabled={loading}>
+                Back
+              </Button>
+              <Button onClick={handleCreateList} disabled={loading || matchedProducts.length === 0}>
+                {loading ? (
+                  <>
+                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                    Creating...
+                  </>
+                ) : (
+                  `Create List (${matchedProducts.length} items)`
+                )}
+              </Button>
+            </>
+          )}
         </div>
       </DialogContent>
     </Dialog>
