@@ -18,6 +18,7 @@ import { MultiStorePriceComparison } from "@/components/MultiStorePriceCompariso
 import { BudgetAISuggestions } from "@/components/BudgetAISuggestions";
 import FloatingActionMenu from "@/components/ui/floating-action-menu";
 import { AutoListCreator } from "@/components/AutoListCreator";
+import { AnimatedButton } from "@/components/ui/animated-button";
 import { countries } from "@/data/countries";
 import { cn } from "@/lib/utils";
 import { SmartShopperLayout } from "@/components/SmartShopperSidebar";
@@ -1000,9 +1001,9 @@ const DashboardContent = ({
                       onChange={(e) => setNewListBudget(e.target.value)}
                     />
                   </div>
-                    <Button onClick={createNewList} className="w-full">
+                    <AnimatedButton onClick={createNewList} className="w-full h-10">
                       Create New List
-                    </Button>
+                    </AnimatedButton>
                   </div>
 
                   <div className="space-y-2 max-h-[500px] overflow-y-auto">
@@ -1224,63 +1225,63 @@ const DashboardContent = ({
                         <>
                           <div className="space-y-2 max-h-[500px] overflow-y-auto">
                             {listItemsWithPrices.map((item: any) => (
-                              <div key={item.id} className="group relative border rounded-xl p-3 transform-gpu transition-all duration-300 hover:shadow-[0_0_0_1px_rgba(0,0,0,.03),0_2px_4px_rgba(0,0,0,.05),0_12px_24px_rgba(0,0,0,.05)] dark:hover:shadow-[0_-20px_80px_-20px_#ffffff1f_inset] hover:-translate-y-1 hover:bg-accent/5">
-                                <div className="pointer-events-none absolute inset-0 rounded-xl transform-gpu transition-all duration-300 group-hover:bg-primary/[.02]" />
+                              <div key={item.id} className="group relative rounded-2xl p-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium tracking-wide transform hover:scale-[1.02] hover:from-emerald-400 hover:to-teal-400 transition-all duration-200 shadow-lg hover:shadow-xl">
+                                <div className="pointer-events-none absolute inset-0 rounded-2xl bg-black/5 group-hover:bg-black/0 transition-all duration-200" />
                                 <div className="flex justify-between items-start gap-3">
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-start gap-2">
                                       <div className="flex-1 min-w-0">
-                                        <p className="font-semibold break-words">{item.products?.description}</p>
-                                        <p className="text-xs text-muted-foreground truncate">GTIN: {item.product_gtin}</p>
+                                        <p className="font-bold break-words text-white">{item.products?.description}</p>
+                                        <p className="text-xs text-white/70 truncate">GTIN: {item.product_gtin}</p>
                                       </div>
                                       {item.in_stock ? (
-                                        <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
+                                        <CheckCircle2 className="h-5 w-5 text-white flex-shrink-0" />
                                       ) : (
-                                        <XCircle className="h-5 w-5 text-red-600 flex-shrink-0" />
+                                        <XCircle className="h-5 w-5 text-red-200 flex-shrink-0" />
                                       )}
                                     </div>
                                     
                                     <div className="mt-2 space-y-2">
                                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
                                         <div className="flex items-center gap-2">
-                                          <span className="text-muted-foreground">Qty:</span>
+                                          <span className="text-white/80">Qty:</span>
                                           <div className="flex items-center gap-1">
                                             <Button
                                               type="button"
                                               size="sm"
                                               variant="outline"
-                                              className="h-6 w-6 p-0 flex items-center justify-center"
+                                              className="h-6 w-6 p-0 flex items-center justify-center bg-white/20 border-white/30 hover:bg-white/30"
                                               onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
                                                 updateListItemQuantity(item.id, -1);
                                               }}
                                             >
-                                              <Minus className="h-3 w-3" />
+                                              <Minus className="h-3 w-3 text-white" />
                                             </Button>
-                                            <span className="w-8 text-center font-medium">{item.quantity}</span>
+                                            <span className="w-8 text-center font-bold text-white">{item.quantity}</span>
                                             <Button
                                               type="button"
                                               size="sm"
                                               variant="outline"
-                                              className="h-6 w-6 p-0 flex items-center justify-center"
+                                              className="h-6 w-6 p-0 flex items-center justify-center bg-white/20 border-white/30 hover:bg-white/30"
                                               onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
                                                 updateListItemQuantity(item.id, 1);
                                               }}
                                             >
-                                              <Plus className="h-3 w-3" />
+                                              <Plus className="h-3 w-3 text-white" />
                                             </Button>
                                           </div>
                                         </div>
                                         {item.price && (
-                                          <span className={`text-xs sm:text-sm ${item.in_stock ? "font-semibold text-foreground" : "font-semibold text-red-600 line-through"}`}>
+                                          <span className={`text-xs sm:text-sm ${item.in_stock ? "font-semibold text-white" : "font-semibold text-red-200 line-through"}`}>
                                             {currencySymbol}{Number(item.price).toFixed(2)} × {item.quantity} = {currencySymbol}{(Number(item.price) * item.quantity).toFixed(2)}
                                           </span>
                                         )}
                                       </div>
-                                      <div className={`text-xs font-medium ${item.in_stock ? "text-green-600" : "text-red-600"}`}>
+                                      <div className={`text-xs font-bold ${item.in_stock ? "text-white" : "text-red-200"}`}>
                                         {item.in_stock ? "✓ In Stock" : "✗ Out of Stock"}
                                       </div>
                                     </div>
@@ -1290,7 +1291,7 @@ const DashboardContent = ({
                                     size="sm"
                                     variant="destructive"
                                     onClick={() => removeItemFromList(item.id)}
-                                    className="flex-shrink-0"
+                                    className="flex-shrink-0 bg-red-500 hover:bg-red-600"
                                   >
                                     Delete
                                   </Button>
@@ -1328,41 +1329,41 @@ const DashboardContent = ({
                       ) : (
                         <div className="space-y-2 max-h-[500px] overflow-y-auto">
                           {listItems.map((item: any) => (
-                            <div key={item.id} className="group relative border rounded-xl p-3 transform-gpu transition-all duration-300 hover:shadow-[0_0_0_1px_rgba(0,0,0,.03),0_2px_4px_rgba(0,0,0,.05),0_12px_24px_rgba(0,0,0,.05)] dark:hover:shadow-[0_-20px_80px_-20px_#ffffff1f_inset] hover:-translate-y-1 hover:bg-accent/5">
-                              <div className="pointer-events-none absolute inset-0 rounded-xl transform-gpu transition-all duration-300 group-hover:bg-primary/[.02]" />
+                            <div key={item.id} className="group relative rounded-2xl p-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium tracking-wide transform hover:scale-[1.02] hover:from-emerald-400 hover:to-teal-400 transition-all duration-200 shadow-lg hover:shadow-xl">
+                              <div className="pointer-events-none absolute inset-0 rounded-2xl bg-black/5 group-hover:bg-black/0 transition-all duration-200" />
                               <div className="flex justify-between items-start gap-3">
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-semibold truncate">{item.products?.description}</p>
-                                  <p className="text-xs text-muted-foreground mt-1">GTIN: {item.product_gtin}</p>
+                                  <p className="font-bold truncate text-white">{item.products?.description}</p>
+                                  <p className="text-xs text-white/70 mt-1">GTIN: {item.product_gtin}</p>
                                   <div className="flex items-center gap-2 mt-2">
-                                    <span className="text-sm text-muted-foreground">Qty:</span>
+                                    <span className="text-sm text-white/80">Qty:</span>
                                     <div className="flex items-center gap-1">
                                       <Button
                                         type="button"
                                         size="sm"
                                         variant="outline"
-                                        className="h-6 w-6 p-0 flex items-center justify-center"
+                                        className="h-6 w-6 p-0 flex items-center justify-center bg-white/20 border-white/30 hover:bg-white/30"
                                         onClick={(e) => {
                                           e.preventDefault();
                                           e.stopPropagation();
                                           updateListItemQuantity(item.id, -1);
                                         }}
                                       >
-                                        <Minus className="h-3 w-3" />
+                                        <Minus className="h-3 w-3 text-white" />
                                       </Button>
-                                      <span className="w-8 text-center font-medium">{item.quantity}</span>
+                                      <span className="w-8 text-center font-bold text-white">{item.quantity}</span>
                                       <Button
                                         type="button"
                                         size="sm"
                                         variant="outline"
-                                        className="h-6 w-6 p-0 flex items-center justify-center"
+                                        className="h-6 w-6 p-0 flex items-center justify-center bg-white/20 border-white/30 hover:bg-white/30"
                                         onClick={(e) => {
                                           e.preventDefault();
                                           e.stopPropagation();
                                           updateListItemQuantity(item.id, 1);
                                         }}
                                       >
-                                        <Plus className="h-3 w-3" />
+                                        <Plus className="h-3 w-3 text-white" />
                                       </Button>
                                     </div>
                                   </div>
@@ -1372,7 +1373,7 @@ const DashboardContent = ({
                                   size="sm"
                                   variant="destructive"
                                   onClick={() => removeItemFromList(item.id)}
-                                  className="flex-shrink-0"
+                                  className="flex-shrink-0 bg-red-500 hover:bg-red-600"
                                 >
                                   Delete
                                 </Button>
