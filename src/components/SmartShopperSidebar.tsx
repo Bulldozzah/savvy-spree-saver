@@ -45,7 +45,7 @@ const shopperNavItems: NavItem[] = [
   { icon: DollarSign, label: 'Search & Add Products', view: 'search-add-products', roles: ['shopper', 'super_admin'] },
   { icon: GitCompare, label: 'Compare Prices', view: 'compare', roles: ['shopper', 'super_admin'] },
   { icon: ListChecks, label: 'Shopping Lists', view: 'lists', roles: ['shopper', 'super_admin'] },
-  { icon: MessageSquare, label: 'My Feedback', view: 'my-feedback', roles: ['shopper', 'super_admin'] },
+  { icon: MessageSquare, label: 'Store Feedback', view: 'my-feedback', roles: ['shopper', 'super_admin'] },
 ];
 
 // Store Owner navigation items
