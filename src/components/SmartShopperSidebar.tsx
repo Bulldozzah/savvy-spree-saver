@@ -42,10 +42,9 @@ interface NavItem {
 // Shopper navigation items
 const shopperNavItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', view: 'dashboard', roles: ['shopper', 'super_admin'] },
-  { icon: DollarSign, label: 'Add Price', view: 'add-price', roles: ['shopper', 'super_admin'] },
+  { icon: DollarSign, label: 'Search & Add Products', view: 'search-add-products', roles: ['shopper', 'super_admin'] },
   { icon: GitCompare, label: 'Compare Prices', view: 'compare', roles: ['shopper', 'super_admin'] },
   { icon: ListChecks, label: 'Shopping Lists', view: 'lists', roles: ['shopper', 'super_admin'] },
-  { icon: Store, label: 'Stores', view: 'stores', roles: ['shopper', 'super_admin'] },
   { icon: MessageSquare, label: 'My Feedback', view: 'my-feedback', roles: ['shopper', 'super_admin'] },
 ];
 

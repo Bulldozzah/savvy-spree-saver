@@ -1,8 +1,20 @@
 {
   "name": "vite_react_shadcn_ts",
-  "private": true,
   "version": "0.0.0",
+  "private": true,
+  "description": "**URL**: https://lovable.dev/projects/b5542d98-0e32-4708-8492-3b819cd64a3b",
+  "homepage": "https://github.com/Bulldozzah/Wiseupshop#readme",
+  "bugs": {
+    "url": "https://github.com/Bulldozzah/Wiseupshop/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Bulldozzah/Wiseupshop.git"
+  },
+  "license": "ISC",
+  "author": "",
   "type": "module",
+  "main": "eslint.config.js",
   "scripts": {
     "dev": "vite",
     "build": "vite build",

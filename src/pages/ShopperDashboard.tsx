@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { HoverButton } from "@/components/ui/hover-button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ShoppingCart, TrendingDown, User, ListChecks, ChevronDown, Store, MessageSquare, Search, LogOut, Share, DollarSign, Eye, CheckCircle2, XCircle, Trash2, Link2 } from "lucide-react";
+import { ShoppingCart, TrendingDown, User, ListChecks, ChevronDown, Store, MessageSquare, Search, LogOut, Share, DollarSign, Eye, CheckCircle2, XCircle, Trash2, Link2, Plus, Minus } from "lucide-react";
 import { debounce } from "lodash";
 import { ProfileEditor } from "@/components/ProfileEditor";
 import { StoreSelector } from "@/components/StoreSelector";
@@ -551,14 +551,14 @@ const ShopperDashboard = () => {
   const sectionToView: Record<number, string> = {
     0: 'dashboard',  // My Shopping Lists is the dashboard/home
     1: 'compare',
-    2: 'add-price',
+    2: 'search-add-products',
     3: 'lists',      // Profile section
     4: 'my-feedback',
   };
 
   const viewToSection: Record<string, number> = {
     'dashboard': 0,  // Dashboard goes to My Shopping Lists
-    'add-price': 2,
+    'search-add-products': 2,
     'compare': 1,
     'lists': 0,
     'stores': 0,
@@ -1212,7 +1212,28 @@ const DashboardContent = ({
                                     
                                     <div className="mt-2 space-y-1">
                                       <div className="flex items-center justify-between text-sm">
-                                        <span className="text-muted-foreground">Quantity: {item.quantity}</span>
+                                        <div className="flex items-center gap-2">
+                                          <span className="text-muted-foreground">Quantity:</span>
+                                          <div className="flex items-center gap-1">
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              className="h-6 w-6 p-0"
+                                              onClick={() => updateListItemQuantity(item.id, -1)}
+                                            >
+                                              <Minus className="h-3 w-3" />
+                                            </Button>
+                                            <span className="w-8 text-center font-medium">{item.quantity}</span>
+                                            <Button
+                                              size="sm"
+                                              variant="outline"
+                                              className="h-6 w-6 p-0"
+                                              onClick={() => updateListItemQuantity(item.id, 1)}
+                                            >
+                                              <Plus className="h-3 w-3" />
+                                            </Button>
+                                          </div>
+                                        </div>
                                         {item.price && (
                                           <span className={item.in_stock ? "font-semibold text-foreground" : "font-semibold text-red-600 line-through"}>
                                             {currencySymbol}{Number(item.price).toFixed(2)} × {item.quantity} = {currencySymbol}{(Number(item.price) * item.quantity).toFixed(2)}
@@ -1273,7 +1294,28 @@ const DashboardContent = ({
                                 <div className="flex-1">
                                   <p className="font-semibold">{item.products?.description}</p>
                                   <p className="text-xs text-muted-foreground mt-1">GTIN: {item.product_gtin}</p>
-                                  <p className="text-sm text-muted-foreground mt-2">Quantity: {item.quantity}</p>
+                                  <div className="flex items-center gap-2 mt-2">
+                                    <span className="text-sm text-muted-foreground">Quantity:</span>
+                                    <div className="flex items-center gap-1">
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-6 w-6 p-0"
+                                        onClick={() => updateListItemQuantity(item.id, -1)}
+                                      >
+                                        <Minus className="h-3 w-3" />
+                                      </Button>
+                                      <span className="w-8 text-center font-medium">{item.quantity}</span>
+                                      <Button
+                                        size="sm"
+                                        variant="outline"
+                                        className="h-6 w-6 p-0"
+                                        onClick={() => updateListItemQuantity(item.id, 1)}
+                                      >
+                                        <Plus className="h-3 w-3" />
+                                      </Button>
+                                    </div>
+                                  </div>
                                 </div>
                                 
                                 <Button

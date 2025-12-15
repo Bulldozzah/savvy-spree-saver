@@ -41,7 +41,19 @@ const AppContent = () => {
         
         console.log('Auth event:', event, 'User:', session?.user?.email);
         
-        // Always update session state when we have a valid session
+        // Handle explicit sign out
+        if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
+          roleLoadedRef.current = false;
+          setSession(null);
+          setUser(null);
+          setUserRole(null);
+          setLoading(false);
+          return;
+        }
+        
+        // For all other events, only update state if we have a valid session
+        // This prevents clearing user state during token refresh or transient states
         if (session?.user) {
           setSession(session);
           setUser(session.user);
@@ -59,20 +71,13 @@ const AppContent = () => {
             setLoading(false);
           }
         } 
-        // Only clear state on explicit SIGNED_OUT event
-        else if (event === 'SIGNED_OUT') {
-          console.log('User signed out');
-          roleLoadedRef.current = false;
-          setSession(null);
-          setUser(null);
-          setUserRole(null);
-          setLoading(false);
-        }
         // Handle INITIAL_SESSION with no session (user not logged in)
-        else if (event === 'INITIAL_SESSION' && !session) {
+        else if (event === 'INITIAL_SESSION') {
           console.log('No initial session');
           setLoading(false);
         }
+        // For TOKEN_REFRESHED or other events with null session, 
+        // don't clear state - let Supabase retry the refresh
       }
     );
 
