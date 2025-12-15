@@ -1197,7 +1197,7 @@ const DashboardContent = ({
                 </CardContent>
               </Card>
 
-              <Card>
+              <Card className="overflow-hidden">
                 <CardHeader>
                   <div className="flex items-center justify-between">
                     <CardTitle>Selected List Items</CardTitle>
@@ -1230,8 +1230,8 @@ const DashboardContent = ({
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-start gap-2">
                                       <div className="flex-1 min-w-0">
-                                        <p className="font-semibold">{item.products?.description}</p>
-                                        <p className="text-xs text-muted-foreground">GTIN: {item.product_gtin}</p>
+                                        <p className="font-semibold break-words">{item.products?.description}</p>
+                                        <p className="text-xs text-muted-foreground truncate">GTIN: {item.product_gtin}</p>
                                       </div>
                                       {item.in_stock ? (
                                         <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
@@ -1240,10 +1240,10 @@ const DashboardContent = ({
                                       )}
                                     </div>
                                     
-                                    <div className="mt-2 space-y-1">
-                                      <div className="flex items-center justify-between text-sm">
+                                    <div className="mt-2 space-y-2">
+                                      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
                                         <div className="flex items-center gap-2">
-                                          <span className="text-muted-foreground">Quantity:</span>
+                                          <span className="text-muted-foreground">Qty:</span>
                                           <div className="flex items-center gap-1">
                                             <Button
                                               type="button"
@@ -1275,7 +1275,7 @@ const DashboardContent = ({
                                           </div>
                                         </div>
                                         {item.price && (
-                                          <span className={item.in_stock ? "font-semibold text-foreground" : "font-semibold text-red-600 line-through"}>
+                                          <span className={`text-xs sm:text-sm ${item.in_stock ? "font-semibold text-foreground" : "font-semibold text-red-600 line-through"}`}>
                                             {currencySymbol}{Number(item.price).toFixed(2)} × {item.quantity} = {currencySymbol}{(Number(item.price) * item.quantity).toFixed(2)}
                                           </span>
                                         )}
@@ -1301,9 +1301,9 @@ const DashboardContent = ({
                           
                           {/* Total for in-stock items */}
                           <div className="pt-4 border-t">
-                            <div className="flex justify-between items-center">
-                              <span className="font-semibold">Total (In-Stock Items Only):</span>
-                              <span className="text-xl font-bold text-primary">
+                            <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1">
+                              <span className="font-semibold text-sm sm:text-base">Total (In-Stock Only):</span>
+                              <span className="text-lg sm:text-xl font-bold text-primary">
                                 {currencySymbol}
                                 {listItemsWithPrices
                                   .filter(item => item.in_stock && item.price)
@@ -1312,9 +1312,9 @@ const DashboardContent = ({
                               </span>
                             </div>
                             {listItemsWithPrices.some(item => !item.in_stock && item.price) && (
-                              <div className="flex justify-between items-center mt-2">
-                                <span className="text-sm text-destructive">Including out of stock:</span>
-                                <span className="text-lg font-semibold text-destructive">
+                              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-1 mt-2">
+                                <span className="text-xs sm:text-sm text-destructive">Including out of stock:</span>
+                                <span className="text-base sm:text-lg font-semibold text-destructive">
                                   {currencySymbol}
                                   {listItemsWithPrices
                                     .filter(item => item.price)
@@ -1331,11 +1331,11 @@ const DashboardContent = ({
                             <div key={item.id} className="group relative border rounded-xl p-3 transform-gpu transition-all duration-300 hover:shadow-[0_0_0_1px_rgba(0,0,0,.03),0_2px_4px_rgba(0,0,0,.05),0_12px_24px_rgba(0,0,0,.05)] dark:hover:shadow-[0_-20px_80px_-20px_#ffffff1f_inset] hover:-translate-y-1 hover:bg-accent/5">
                               <div className="pointer-events-none absolute inset-0 rounded-xl transform-gpu transition-all duration-300 group-hover:bg-primary/[.02]" />
                               <div className="flex justify-between items-start gap-3">
-                                <div className="flex-1">
-                                  <p className="font-semibold">{item.products?.description}</p>
+                                <div className="flex-1 min-w-0">
+                                  <p className="font-semibold truncate">{item.products?.description}</p>
                                   <p className="text-xs text-muted-foreground mt-1">GTIN: {item.product_gtin}</p>
                                   <div className="flex items-center gap-2 mt-2">
-                                    <span className="text-sm text-muted-foreground">Quantity:</span>
+                                    <span className="text-sm text-muted-foreground">Qty:</span>
                                     <div className="flex items-center gap-1">
                                       <Button
                                         type="button"
