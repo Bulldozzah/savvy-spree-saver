@@ -449,29 +449,46 @@ const ShopperDashboard = () => {
   };
 
   const updateListItemQuantity = async (itemId: string, delta: number) => {
-    const item = listItems.find(i => i.id === itemId);
-    if (!item) return;
+    // Check both listItems and listItemsWithPrices for the item
+    const item = listItems.find(i => i.id === itemId) || listItemsWithPrices.find(i => i.id === itemId);
+    if (!item) {
+      console.warn('Item not found for quantity update:', itemId);
+      return;
+    }
 
     const newQuantity = Math.max(1, item.quantity + delta);
 
-    // Optimistic update
+    // Optimistic update for both state arrays
     setListItems(prev => 
       prev.map(i => i.id === itemId ? { ...i, quantity: newQuantity } : i)
     );
+    setListItemsWithPrices(prev => 
+      prev.map(i => i.id === itemId ? { ...i, quantity: newQuantity } : i)
+    );
 
-    const { error } = await supabase
-      .from("shopping_list_items")
-      .update({ quantity: newQuantity })
-      .eq("id", itemId);
+    try {
+      const { error } = await supabase
+        .from("shopping_list_items")
+        .update({ quantity: newQuantity })
+        .eq("id", itemId);
 
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
-      // Revert on error
-      loadListItems(selectedListId);
-    } else {
-      // Reload to ensure consistency
-      await loadListItems(selectedListId);
-      await loadShoppingLists(); // Refresh totals
+      if (error) {
+        console.error('Error updating quantity:', error);
+        toast({ title: "Error", description: error.message, variant: "destructive" });
+        // Revert on error
+        if (selectedListId) {
+          loadListItems(selectedListId);
+        }
+      } else {
+        // Reload to ensure consistency - but don't block on it
+        if (selectedListId) {
+          loadListItems(selectedListId);
+          loadShoppingLists();
+        }
+      }
+    } catch (err) {
+      console.error('Unexpected error updating quantity:', err);
+      // Don't propagate errors that might affect auth
     }
   };
 
@@ -1216,19 +1233,29 @@ const DashboardContent = ({
                                           <span className="text-muted-foreground">Quantity:</span>
                                           <div className="flex items-center gap-1">
                                             <Button
+                                              type="button"
                                               size="sm"
                                               variant="outline"
-                                              className="h-6 w-6 p-0"
-                                              onClick={() => updateListItemQuantity(item.id, -1)}
+                                              className="h-6 w-6 p-0 flex items-center justify-center"
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                updateListItemQuantity(item.id, -1);
+                                              }}
                                             >
                                               <Minus className="h-3 w-3" />
                                             </Button>
                                             <span className="w-8 text-center font-medium">{item.quantity}</span>
                                             <Button
+                                              type="button"
                                               size="sm"
                                               variant="outline"
-                                              className="h-6 w-6 p-0"
-                                              onClick={() => updateListItemQuantity(item.id, 1)}
+                                              className="h-6 w-6 p-0 flex items-center justify-center"
+                                              onClick={(e) => {
+                                                e.preventDefault();
+                                                e.stopPropagation();
+                                                updateListItemQuantity(item.id, 1);
+                                              }}
                                             >
                                               <Plus className="h-3 w-3" />
                                             </Button>
@@ -1298,19 +1325,29 @@ const DashboardContent = ({
                                     <span className="text-sm text-muted-foreground">Quantity:</span>
                                     <div className="flex items-center gap-1">
                                       <Button
+                                        type="button"
                                         size="sm"
                                         variant="outline"
-                                        className="h-6 w-6 p-0"
-                                        onClick={() => updateListItemQuantity(item.id, -1)}
+                                        className="h-6 w-6 p-0 flex items-center justify-center"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          updateListItemQuantity(item.id, -1);
+                                        }}
                                       >
                                         <Minus className="h-3 w-3" />
                                       </Button>
                                       <span className="w-8 text-center font-medium">{item.quantity}</span>
                                       <Button
+                                        type="button"
                                         size="sm"
                                         variant="outline"
-                                        className="h-6 w-6 p-0"
-                                        onClick={() => updateListItemQuantity(item.id, 1)}
+                                        className="h-6 w-6 p-0 flex items-center justify-center"
+                                        onClick={(e) => {
+                                          e.preventDefault();
+                                          e.stopPropagation();
+                                          updateListItemQuantity(item.id, 1);
+                                        }}
                                       >
                                         <Plus className="h-3 w-3" />
                                       </Button>
