@@ -144,20 +144,105 @@ export type Database = {
           },
         ]
       }
-      products: {
+      category_groups: {
         Row: {
-          description: string
-          gtin: string
+          created_at: string | null
+          id: string
+          name: string
         }
         Insert: {
-          description: string
-          gtin: string
+          created_at?: string | null
+          id?: string
+          name: string
         }
         Update: {
-          description?: string
-          gtin?: string
+          created_at?: string | null
+          id?: string
+          name?: string
         }
         Relationships: []
+      }
+      departments: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      merchandise_categories: {
+        Row: {
+          created_at: string | null
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string | null
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string | null
+          id?: string
+          name?: string
+        }
+        Relationships: []
+      }
+      products: {
+        Row: {
+          category_group_id: string | null
+          department_id: string | null
+          description: string
+          gtin: string
+          merchandise_category_id: string | null
+        }
+        Insert: {
+          category_group_id?: string | null
+          department_id?: string | null
+          description: string
+          gtin: string
+          merchandise_category_id?: string | null
+        }
+        Update: {
+          category_group_id?: string | null
+          department_id?: string | null
+          description?: string
+          gtin?: string
+          merchandise_category_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_category_group_id_fkey"
+            columns: ["category_group_id"]
+            isOneToOne: false
+            referencedRelation: "category_groups"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_department_id_fkey"
+            columns: ["department_id"]
+            isOneToOne: false
+            referencedRelation: "departments"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_merchandise_category_id_fkey"
+            columns: ["merchandise_category_id"]
+            isOneToOne: false
+            referencedRelation: "merchandise_categories"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
