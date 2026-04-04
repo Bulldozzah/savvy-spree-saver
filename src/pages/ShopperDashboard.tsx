@@ -68,8 +68,20 @@ const ShopperDashboard = () => {
     loadStores();
     loadShoppingLists();
     loadUserProfile();
-    searchProducts("");
+    searchProducts("", "all", "all", "all");
+    loadFilterData();
   }, []);
+
+  const loadFilterData = async () => {
+    const [deptRes, cgRes, mcRes] = await Promise.all([
+      supabase.from("departments").select("*").order("name"),
+      supabase.from("category_groups").select("*").order("name"),
+      supabase.from("merchandise_categories").select("*").order("name"),
+    ]);
+    setDepartments(deptRes.data || []);
+    setCategoryGroups(cgRes.data || []);
+    setMerchandiseCategories(mcRes.data || []);
+  };
 
   // Auto-load prices when store or list items change
   useEffect(() => {
