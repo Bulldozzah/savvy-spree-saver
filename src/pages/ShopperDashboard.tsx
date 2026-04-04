@@ -707,6 +707,13 @@ const ShopperDashboard = () => {
         setViewListDialogOpen={setViewListDialogOpen}
         viewingListId={viewingListId}
         setViewingListId={setViewingListId}
+        departments={departments}
+        categoryGroups={categoryGroups}
+        merchandiseCategories={merchandiseCategories}
+        filterDepartment={filterDepartment}
+        filterCategoryGroup={filterCategoryGroup}
+        filterMerchandiseCategory={filterMerchandiseCategory}
+        handleFilterChange={handleFilterChange}
       />
     </SmartShopperLayout>
   );
