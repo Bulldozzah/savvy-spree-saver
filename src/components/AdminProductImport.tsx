@@ -125,6 +125,48 @@ const AdminProductImport = () => {
         return;
       }
 
+      // Check for duplicates within the pasted data
+      const gtinCounts = new Map<string, number[]>();
+      products.forEach((p, idx) => {
+        const g = p.gtin;
+        if (!gtinCounts.has(g)) gtinCounts.set(g, []);
+        gtinCounts.get(g)!.push(idx + 1);
+      });
+      const internalDups = Array.from(gtinCounts.entries())
+        .filter(([, rows]) => rows.length > 1)
+        .map(([g, rows]) => `GTIN ${g} on rows ${rows.join(", ")}`);
+
+      if (internalDups.length > 0) {
+        toast({
+          title: "Duplicates in data",
+          description: internalDups.slice(0, 5).join("; ") + (internalDups.length > 5 ? `; ...and ${internalDups.length - 5} more` : ""),
+          variant: "destructive",
+        });
+        setIsImporting(false);
+        return;
+      }
+
+      // Check for duplicates against the database
+      const gtins = products.map(p => p.gtin);
+      const { data: existingProducts } = await supabase
+        .from("products")
+        .select("gtin")
+        .in("gtin", gtins);
+
+      if (existingProducts && existingProducts.length > 0) {
+        const existingGtins = existingProducts.map(p => p.gtin);
+        const dbDups = products
+          .map((p, idx) => existingGtins.includes(p.gtin) ? `Row ${idx + 1}: GTIN ${p.gtin}` : null)
+          .filter(Boolean);
+        toast({
+          title: `${existingProducts.length} duplicate(s) already in database`,
+          description: dbDups.slice(0, 5).join("; ") + (dbDups.length > 5 ? `; ...and ${dbDups.length - 5} more` : ""),
+          variant: "destructive",
+        });
+        setIsImporting(false);
+        return;
+      }
+
       const { error } = await supabase.from("products").insert(products);
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });

@@ -157,6 +157,48 @@ export function ProductsView() {
         return;
       }
 
+      // Check for duplicates within the CSV itself
+      const gtinCounts = new Map<string, number[]>();
+      products.forEach((p, idx) => {
+        const g = p.gtin;
+        if (!gtinCounts.has(g)) gtinCounts.set(g, []);
+        gtinCounts.get(g)!.push(idx + startIndex + 1); // 1-based line numbers
+      });
+      const csvDuplicates = Array.from(gtinCounts.entries())
+        .filter(([, lines]) => lines.length > 1)
+        .map(([g, lines]) => `GTIN ${g} on lines ${lines.join(", ")}`);
+
+      if (csvDuplicates.length > 0) {
+        toast({
+          title: "Duplicates in CSV",
+          description: csvDuplicates.slice(0, 5).join("; ") + (csvDuplicates.length > 5 ? `; ...and ${csvDuplicates.length - 5} more` : ""),
+          variant: "destructive",
+        });
+        setIsUploadingCsv(false);
+        return;
+      }
+
+      // Check for duplicates against the database
+      const gtins = products.map(p => p.gtin);
+      const { data: existingProducts } = await supabase
+        .from("products")
+        .select("gtin")
+        .in("gtin", gtins);
+
+      if (existingProducts && existingProducts.length > 0) {
+        const existingGtins = existingProducts.map(p => p.gtin);
+        const dbDupLines = products
+          .map((p, idx) => existingGtins.includes(p.gtin) ? `Line ${idx + startIndex + 1}: GTIN ${p.gtin}` : null)
+          .filter(Boolean);
+        toast({
+          title: `${existingProducts.length} duplicate(s) already in database`,
+          description: dbDupLines.slice(0, 5).join("; ") + (dbDupLines.length > 5 ? `; ...and ${dbDupLines.length - 5} more` : ""),
+          variant: "destructive",
+        });
+        setIsUploadingCsv(false);
+        return;
+      }
+
       const { error } = await supabase.from("products").insert(products);
       if (error) {
         toast({ title: "Error", description: error.message, variant: "destructive" });
