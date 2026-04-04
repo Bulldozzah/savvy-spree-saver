@@ -774,6 +774,13 @@ const DashboardContent = ({
   setViewListDialogOpen,
   viewingListId,
   setViewingListId,
+  departments,
+  categoryGroups,
+  merchandiseCategories,
+  filterDepartment,
+  filterCategoryGroup,
+  filterMerchandiseCategory,
+  handleFilterChange,
 }: {
   activeSection: number;
   selectedStore: any;
