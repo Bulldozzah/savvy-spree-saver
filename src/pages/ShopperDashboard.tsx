@@ -390,12 +390,20 @@ const ShopperDashboard = () => {
     }, 0);
   };
 
-  const searchProducts = async (term: string) => {
+  const searchProducts = async (term: string, deptId?: string, cgId?: string, mcId?: string) => {
     let query = supabase.from("products").select("*");
     
     if (term.trim()) {
       query = query.or(`gtin.ilike.%${term}%,description.ilike.%${term}%`);
     }
+
+    const dept = deptId ?? filterDepartment;
+    const cg = cgId ?? filterCategoryGroup;
+    const mc = mcId ?? filterMerchandiseCategory;
+
+    if (dept && dept !== "all") query = query.eq("department_id", dept);
+    if (cg && cg !== "all") query = query.eq("category_group_id", cg);
+    if (mc && mc !== "all") query = query.eq("merchandise_category_id", mc);
     
     query = query.limit(100);
     
