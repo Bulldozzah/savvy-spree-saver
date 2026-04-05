@@ -57,12 +57,8 @@ const ShopperDashboard = () => {
   const [viewingListId, setViewingListId] = useState<string>("");
 
   // Category filter state
-  const [departments, setDepartments] = useState<any[]>([]);
   const [categoryGroups, setCategoryGroups] = useState<any[]>([]);
-  const [merchandiseCategories, setMerchandiseCategories] = useState<any[]>([]);
-  const [filterDepartment, setFilterDepartment] = useState<string>("all");
   const [filterCategoryGroup, setFilterCategoryGroup] = useState<string>("all");
-  const [filterMerchandiseCategory, setFilterMerchandiseCategory] = useState<string>("all");
 
   useEffect(() => {
     loadStores();
