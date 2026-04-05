@@ -13,9 +13,7 @@ type LookupItem = { id: string; name: string };
 const AdminProductImport = () => {
   const [gtin, setGtin] = useState("");
   const [description, setDescription] = useState("");
-  const [departmentId, setDepartmentId] = useState("");
   const [categoryGroupId, setCategoryGroupId] = useState("");
-  const [merchandiseCategoryId, setMerchandiseCategoryId] = useState("");
   const [bulkData, setBulkData] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const { toast } = useToast();
