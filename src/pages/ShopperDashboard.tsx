@@ -69,11 +69,8 @@ const ShopperDashboard = () => {
   }, []);
 
   const loadFilterData = async () => {
-    const [deptRes, cgRes, mcRes] = await Promise.all([
-      supabase.from("departments").select("*").order("name"),
-      supabase.from("category_groups").select("*").order("name"),
-      supabase.from("merchandise_categories").select("*").order("name"),
-    ]);
+    const { data } = await supabase.from("category_groups").select("*").order("name");
+    if (data) setCategoryGroups(data);
     setDepartments(deptRes.data || []);
     setCategoryGroups(cgRes.data || []);
     setMerchandiseCategories(mcRes.data || []);

@@ -228,7 +228,7 @@ const AdminProductImport = () => {
                     className="font-mono text-sm"
                   />
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Enter one product per line in format: GTIN,Description,Department,Category Group,Merchandise Category
+                    Enter one product per line in format: GTIN,Description,Category Group
                   </p>
                 </div>
                 <Button className="w-full" onClick={importBulkProducts} disabled={isImporting}>

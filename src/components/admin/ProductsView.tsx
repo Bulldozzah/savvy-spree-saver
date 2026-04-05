@@ -231,7 +231,7 @@ export function ProductsView() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Upload a CSV file with format: GTIN,Description,Department,Category Group,Merchandise Category
+            Upload a CSV file with format: GTIN,Description,Category Group
           </p>
           <Input id="csv-upload" type="file" accept=".csv" onChange={(e) => setCsvFile(e.target.files?.[0] || null)} />
           <Button onClick={handleCsvUpload} disabled={isUploadingCsv}>
