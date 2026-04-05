@@ -569,14 +569,9 @@ const ShopperDashboard = () => {
     debouncedSearch(value);
   };
 
-  const handleFilterChange = (type: "department" | "categoryGroup" | "merchandiseCategory", value: string) => {
-    const newDept = type === "department" ? value : filterDepartment;
-    const newCg = type === "categoryGroup" ? value : filterCategoryGroup;
-    const newMc = type === "merchandiseCategory" ? value : filterMerchandiseCategory;
-    if (type === "department") setFilterDepartment(value);
-    if (type === "categoryGroup") setFilterCategoryGroup(value);
-    if (type === "merchandiseCategory") setFilterMerchandiseCategory(value);
-    searchProducts(searchTerm, newDept, newCg, newMc);
+  const handleFilterChange = (type: "categoryGroup", value: string) => {
+    setFilterCategoryGroup(value);
+    searchProducts(searchTerm, value);
   };
 
   const handleLogout = async () => {
