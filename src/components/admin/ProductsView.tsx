@@ -120,9 +120,8 @@ export function ProductsView() {
         };
 
         try {
-          if (deptName) product.department_id = await resolveOrCreateLookup("departments", deptName, departments, setDepartments);
           if (cgName) product.category_group_id = await resolveOrCreateLookup("category_groups", cgName, categoryGroups, setCategoryGroups);
-          if (mcName) product.merchandise_category_id = await resolveOrCreateLookup("merchandise_categories", mcName, merchandiseCategories, setMerchandiseCategories);
+        }
         } catch (err: any) {
           validationErrors.push(`Line ${i + 1}: ${err.message}`);
           continue;
