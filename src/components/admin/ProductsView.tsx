@@ -24,9 +24,7 @@ export function ProductsView() {
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [isUploadingCsv, setIsUploadingCsv] = useState(false);
 
-  const [departments, setDepartments] = useState<LookupItem[]>([]);
   const [categoryGroups, setCategoryGroups] = useState<LookupItem[]>([]);
-  const [merchandiseCategories, setMerchandiseCategories] = useState<LookupItem[]>([]);
 
   useEffect(() => {
     const fetchLookups = async () => {
