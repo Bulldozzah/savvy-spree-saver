@@ -20,9 +20,7 @@ export function ProductsView() {
   const { toast } = useToast();
   const [gtin, setGtin] = useState("");
   const [description, setDescription] = useState("");
-  const [departmentId, setDepartmentId] = useState("");
   const [categoryGroupId, setCategoryGroupId] = useState("");
-  const [merchandiseCategoryId, setMerchandiseCategoryId] = useState("");
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [isUploadingCsv, setIsUploadingCsv] = useState(false);
 
