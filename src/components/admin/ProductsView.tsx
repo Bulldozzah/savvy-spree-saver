@@ -1,10 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Package } from "lucide-react";
 import { z } from "zod";
 import AdminProductImport from "@/components/AdminProductImport";
@@ -14,25 +13,12 @@ const productSchema = z.object({
   description: z.string().trim().min(1, "Description is required").max(500, "Description must be less than 500 characters")
 });
 
-type LookupItem = { id: string; name: string };
-
 export function ProductsView() {
   const { toast } = useToast();
   const [gtin, setGtin] = useState("");
   const [description, setDescription] = useState("");
-  const [categoryGroupId, setCategoryGroupId] = useState("");
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [isUploadingCsv, setIsUploadingCsv] = useState(false);
-
-  const [categoryGroups, setCategoryGroups] = useState<LookupItem[]>([]);
-
-  useEffect(() => {
-    const fetchLookups = async () => {
-      const { data } = await supabase.from("category_groups").select("id, name").order("name");
-      if (data) setCategoryGroups(data as LookupItem[]);
-    };
-    fetchLookups();
-  }, []);
 
   const createProduct = async () => {
     const result = productSchema.safeParse({ gtin, description });
@@ -41,46 +27,17 @@ export function ProductsView() {
       return;
     }
 
-    const productData: Record<string, string> = {
+    const { error } = await supabase.from("products").insert({
       gtin: result.data.gtin,
       description: result.data.description,
-    };
-    if (categoryGroupId) productData.category_group_id = categoryGroupId;
-
-    const { error } = await supabase.from("products").insert(productData);
+    });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Success", description: "Product created" });
       setGtin("");
       setDescription("");
-      setCategoryGroupId("");
     }
-  };
-
-  const resolveOrCreateLookup = async (
-    table: string,
-    name: string,
-    cache: LookupItem[],
-    setCache: React.Dispatch<React.SetStateAction<LookupItem[]>>
-  ): Promise<string> => {
-    const trimmed = name.trim();
-    if (!trimmed) return "";
-    const existing = cache.find(item => item.name.toLowerCase() === trimmed.toLowerCase());
-    if (existing) return existing.id;
-
-    const { data, error } = await supabase.from(table).insert({ name: trimmed }).select("id, name").single();
-    if (error) {
-      // Try fetching in case of race condition / unique constraint
-      const { data: fetched } = await supabase.from(table).select("id, name").ilike("name", trimmed).single();
-      if (fetched) {
-        setCache(prev => [...prev, fetched as LookupItem]);
-        return (fetched as LookupItem).id;
-      }
-      throw new Error(`Failed to resolve ${table}: ${trimmed}`);
-    }
-    setCache(prev => [...prev, data as LookupItem]);
-    return (data as LookupItem).id;
   };
 
   const handleCsvUpload = async () => {
@@ -101,7 +58,7 @@ export function ProductsView() {
 
       for (let i = startIndex; i < lines.length; i++) {
         const parts = lines[i].split(",").map(s => s.trim());
-        const [gtinVal, descVal, cgName] = parts;
+        const [gtinVal, descVal] = parts;
 
         if (!gtinVal || !descVal) {
           validationErrors.push(`Line ${i + 1}: Missing GTIN or description`);
@@ -114,19 +71,10 @@ export function ProductsView() {
           continue;
         }
 
-        const product: Record<string, string> = {
+        products.push({
           gtin: result.data.gtin,
           description: result.data.description,
-        };
-
-        try {
-          if (cgName) product.category_group_id = await resolveOrCreateLookup("category_groups", cgName, categoryGroups, setCategoryGroups);
-        } catch (err: any) {
-          validationErrors.push(`Line ${i + 1}: ${err.message}`);
-          continue;
-        }
-
-        products.push(product);
+        });
       }
 
       if (validationErrors.length > 0) {
@@ -136,7 +84,7 @@ export function ProductsView() {
       }
 
       if (products.length === 0) {
-        toast({ title: "Error", description: "No valid products found. Format: GTIN,Description,Category Group", variant: "destructive" });
+        toast({ title: "Error", description: "No valid products found. Format: GTIN,Description", variant: "destructive" });
         setIsUploadingCsv(false);
         return;
       }
@@ -146,7 +94,7 @@ export function ProductsView() {
       products.forEach((p, idx) => {
         const g = p.gtin;
         if (!gtinCounts.has(g)) gtinCounts.set(g, []);
-        gtinCounts.get(g)!.push(idx + startIndex + 1); // 1-based line numbers
+        gtinCounts.get(g)!.push(idx + startIndex + 1);
       });
       const csvDuplicates = Array.from(gtinCounts.entries())
         .filter(([, lines]) => lines.length > 1)
@@ -211,14 +159,6 @@ export function ProductsView() {
         <CardContent className="space-y-4">
           <Input placeholder="GTIN (8-14 digits)" value={gtin} onChange={(e) => setGtin(e.target.value)} />
           <Input placeholder="Product Description" value={description} onChange={(e) => setDescription(e.target.value)} />
-
-          <Select value={categoryGroupId} onValueChange={setCategoryGroupId}>
-            <SelectTrigger><SelectValue placeholder="Select Category Group" /></SelectTrigger>
-            <SelectContent>
-              {categoryGroups.map(cg => <SelectItem key={cg.id} value={cg.id}>{cg.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-
           <Button onClick={createProduct}>Create Product</Button>
         </CardContent>
       </Card>
@@ -229,7 +169,7 @@ export function ProductsView() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Upload a CSV file with format: GTIN,Description,Category Group
+            Upload a CSV file with format: GTIN,Description
           </p>
           <Input id="csv-upload" type="file" accept=".csv" onChange={(e) => setCsvFile(e.target.files?.[0] || null)} />
           <Button onClick={handleCsvUpload} disabled={isUploadingCsv}>
