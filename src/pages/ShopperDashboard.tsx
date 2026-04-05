@@ -56,9 +56,6 @@ const ShopperDashboard = () => {
   const [viewListDialogOpen, setViewListDialogOpen] = useState(false);
   const [viewingListId, setViewingListId] = useState<string>("");
 
-  // Category filter state
-  const [categoryGroups, setCategoryGroups] = useState<any[]>([]);
-  const [filterCategoryGroup, setFilterCategoryGroup] = useState<string>("all");
 
   useEffect(() => {
     loadStores();
