@@ -18,20 +18,12 @@ const AdminProductImport = () => {
   const [isImporting, setIsImporting] = useState(false);
   const { toast } = useToast();
 
-  const [departments, setDepartments] = useState<LookupItem[]>([]);
   const [categoryGroups, setCategoryGroups] = useState<LookupItem[]>([]);
-  const [merchandiseCategories, setMerchandiseCategories] = useState<LookupItem[]>([]);
 
   useEffect(() => {
     const fetchLookups = async () => {
-      const [dRes, cgRes, mcRes] = await Promise.all([
-        supabase.from("departments").select("id, name").order("name"),
-        supabase.from("category_groups").select("id, name").order("name"),
-        supabase.from("merchandise_categories").select("id, name").order("name"),
-      ]);
-      if (dRes.data) setDepartments(dRes.data as LookupItem[]);
-      if (cgRes.data) setCategoryGroups(cgRes.data as LookupItem[]);
-      if (mcRes.data) setMerchandiseCategories(mcRes.data as LookupItem[]);
+      const { data } = await supabase.from("category_groups").select("id, name").order("name");
+      if (data) setCategoryGroups(data as LookupItem[]);
     };
     fetchLookups();
   }, []);
