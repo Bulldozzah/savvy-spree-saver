@@ -1615,20 +1615,6 @@ const DashboardContent = ({
                   onChange={(e) => handleSearchChange(e.target.value)}
                 />
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-muted-foreground">Category Group</label>
-                  <Select value={filterCategoryGroup} onValueChange={(v) => handleFilterChange("categoryGroup", v)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Category Groups" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Category Groups</SelectItem>
-                      {categoryGroups.map((cg: any) => (
-                        <SelectItem key={cg.id} value={cg.id}>{cg.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
 
                 <div className="space-y-2 max-h-[600px] overflow-y-auto">
                   {products.map((product) => {
