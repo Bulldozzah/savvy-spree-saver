@@ -54,9 +54,7 @@ export function ProductsView() {
       toast({ title: "Success", description: "Product created" });
       setGtin("");
       setDescription("");
-      setDepartmentId("");
       setCategoryGroupId("");
-      setMerchandiseCategoryId("");
     }
   };
 
