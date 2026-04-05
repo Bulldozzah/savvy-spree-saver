@@ -121,7 +121,6 @@ export function ProductsView() {
 
         try {
           if (cgName) product.category_group_id = await resolveOrCreateLookup("category_groups", cgName, categoryGroups, setCategoryGroups);
-        }
         } catch (err: any) {
           validationErrors.push(`Line ${i + 1}: ${err.message}`);
           continue;

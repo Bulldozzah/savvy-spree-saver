@@ -96,7 +96,6 @@ const AdminProductImport = () => {
 
         try {
           if (cgName) product.category_group_id = await resolveOrCreateLookup("category_groups", cgName, categoryGroups, setCategoryGroups);
-        }
         } catch {
           continue;
         }
