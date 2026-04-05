@@ -71,9 +71,7 @@ const AdminProductImport = () => {
       toast({ title: "Success", description: "Product imported successfully" });
       setGtin("");
       setDescription("");
-      setDepartmentId("");
       setCategoryGroupId("");
-      setMerchandiseCategoryId("");
     }
   };
 
