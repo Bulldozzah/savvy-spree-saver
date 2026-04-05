@@ -138,7 +138,7 @@ export function ProductsView() {
       }
 
       if (products.length === 0) {
-        toast({ title: "Error", description: "No valid products found. Format: GTIN,Description,Department,Category Group,Merchandise Category", variant: "destructive" });
+        toast({ title: "Error", description: "No valid products found. Format: GTIN,Description,Category Group", variant: "destructive" });
         setIsUploadingCsv(false);
         return;
       }
