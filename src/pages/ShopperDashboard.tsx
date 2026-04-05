@@ -71,9 +71,6 @@ const ShopperDashboard = () => {
   const loadFilterData = async () => {
     const { data } = await supabase.from("category_groups").select("*").order("name");
     if (data) setCategoryGroups(data);
-    setDepartments(deptRes.data || []);
-    setCategoryGroups(cgRes.data || []);
-    setMerchandiseCategories(mcRes.data || []);
   };
 
   // Auto-load prices when store or list items change
