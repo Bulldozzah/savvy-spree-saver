@@ -371,15 +371,12 @@ const ShopperDashboard = () => {
     }, 0);
   };
 
-  const searchProducts = async (term: string, cgId?: string) => {
+  const searchProducts = async (term: string) => {
     let query = supabase.from("products").select("*");
     
     if (term.trim()) {
       query = query.or(`gtin.ilike.%${term}%,description.ilike.%${term}%`);
     }
-
-    const cg = cgId ?? filterCategoryGroup;
-    if (cg && cg !== "all") query = query.eq("category_group_id", cg);
     
     query = query.limit(100);
     
