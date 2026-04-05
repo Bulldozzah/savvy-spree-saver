@@ -214,24 +214,10 @@ export function ProductsView() {
           <Input placeholder="GTIN (8-14 digits)" value={gtin} onChange={(e) => setGtin(e.target.value)} />
           <Input placeholder="Product Description" value={description} onChange={(e) => setDescription(e.target.value)} />
 
-          <Select value={departmentId} onValueChange={setDepartmentId}>
-            <SelectTrigger><SelectValue placeholder="Select Department" /></SelectTrigger>
-            <SelectContent>
-              {departments.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-
           <Select value={categoryGroupId} onValueChange={setCategoryGroupId}>
             <SelectTrigger><SelectValue placeholder="Select Category Group" /></SelectTrigger>
             <SelectContent>
               {categoryGroups.map(cg => <SelectItem key={cg.id} value={cg.id}>{cg.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-
-          <Select value={merchandiseCategoryId} onValueChange={setMerchandiseCategoryId}>
-            <SelectTrigger><SelectValue placeholder="Select Merchandise Category" /></SelectTrigger>
-            <SelectContent>
-              {merchandiseCategories.map(mc => <SelectItem key={mc.id} value={mc.id}>{mc.name}</SelectItem>)}
             </SelectContent>
           </Select>
 
