@@ -62,9 +62,7 @@ const AdminProductImport = () => {
       gtin: gtin.trim(),
       description: description.trim(),
     };
-    if (departmentId) productData.department_id = departmentId;
     if (categoryGroupId) productData.category_group_id = categoryGroupId;
-    if (merchandiseCategoryId) productData.merchandise_category_id = merchandiseCategoryId;
 
     const { error } = await supabase.from("products").insert(productData);
     if (error) {
