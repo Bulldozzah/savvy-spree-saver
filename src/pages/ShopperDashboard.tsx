@@ -56,22 +56,13 @@ const ShopperDashboard = () => {
   const [viewListDialogOpen, setViewListDialogOpen] = useState(false);
   const [viewingListId, setViewingListId] = useState<string>("");
 
-  // Category filter state
-  const [categoryGroups, setCategoryGroups] = useState<any[]>([]);
-  const [filterCategoryGroup, setFilterCategoryGroup] = useState<string>("all");
 
   useEffect(() => {
     loadStores();
     loadShoppingLists();
     loadUserProfile();
-    searchProducts("", "all");
-    loadFilterData();
+    searchProducts("");
   }, []);
-
-  const loadFilterData = async () => {
-    const { data } = await supabase.from("category_groups").select("*").order("name");
-    if (data) setCategoryGroups(data);
-  };
 
   // Auto-load prices when store or list items change
   useEffect(() => {
@@ -380,15 +371,12 @@ const ShopperDashboard = () => {
     }, 0);
   };
 
-  const searchProducts = async (term: string, cgId?: string) => {
+  const searchProducts = async (term: string) => {
     let query = supabase.from("products").select("*");
     
     if (term.trim()) {
       query = query.or(`gtin.ilike.%${term}%,description.ilike.%${term}%`);
     }
-
-    const cg = cgId ?? filterCategoryGroup;
-    if (cg && cg !== "all") query = query.eq("category_group_id", cg);
     
     query = query.limit(100);
     
@@ -569,10 +557,6 @@ const ShopperDashboard = () => {
     debouncedSearch(value);
   };
 
-  const handleFilterChange = (type: "categoryGroup", value: string) => {
-    setFilterCategoryGroup(value);
-    searchProducts(searchTerm, value);
-  };
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
@@ -687,9 +671,6 @@ const ShopperDashboard = () => {
         setViewListDialogOpen={setViewListDialogOpen}
         viewingListId={viewingListId}
         setViewingListId={setViewingListId}
-        categoryGroups={categoryGroups}
-        filterCategoryGroup={filterCategoryGroup}
-        handleFilterChange={handleFilterChange}
       />
     </SmartShopperLayout>
   );
@@ -750,9 +731,6 @@ const DashboardContent = ({
   setViewListDialogOpen,
   viewingListId,
   setViewingListId,
-  categoryGroups,
-  filterCategoryGroup,
-  handleFilterChange,
 }: {
   activeSection: number;
   selectedStore: any;
@@ -808,9 +786,6 @@ const DashboardContent = ({
   setViewListDialogOpen: (open: boolean) => void;
   viewingListId: string;
   setViewingListId: (id: string) => void;
-  categoryGroups: any[];
-  filterCategoryGroup: string;
-  handleFilterChange: (type: "categoryGroup", value: string) => void;
 }) => {
   return (
     <div className="flex flex-1 flex-col w-full">
@@ -1640,20 +1615,6 @@ const DashboardContent = ({
                   onChange={(e) => handleSearchChange(e.target.value)}
                 />
 
-                <div className="space-y-1">
-                  <label className="text-sm font-medium text-muted-foreground">Category Group</label>
-                  <Select value={filterCategoryGroup} onValueChange={(v) => handleFilterChange("categoryGroup", v)}>
-                    <SelectTrigger>
-                      <SelectValue placeholder="All Category Groups" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All Category Groups</SelectItem>
-                      {categoryGroups.map((cg: any) => (
-                        <SelectItem key={cg.id} value={cg.id}>{cg.name}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
 
                 <div className="space-y-2 max-h-[600px] overflow-y-auto">
                   {products.map((product) => {

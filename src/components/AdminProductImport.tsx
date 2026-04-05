@@ -1,56 +1,18 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Upload } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
-type LookupItem = { id: string; name: string };
-
 const AdminProductImport = () => {
   const [gtin, setGtin] = useState("");
   const [description, setDescription] = useState("");
-  const [categoryGroupId, setCategoryGroupId] = useState("");
   const [bulkData, setBulkData] = useState("");
   const [isImporting, setIsImporting] = useState(false);
   const { toast } = useToast();
-
-  const [categoryGroups, setCategoryGroups] = useState<LookupItem[]>([]);
-
-  useEffect(() => {
-    const fetchLookups = async () => {
-      const { data } = await supabase.from("category_groups").select("id, name").order("name");
-      if (data) setCategoryGroups(data as LookupItem[]);
-    };
-    fetchLookups();
-  }, []);
-
-  const resolveOrCreateLookup = async (
-    table: string,
-    name: string,
-    cache: LookupItem[],
-    setCache: React.Dispatch<React.SetStateAction<LookupItem[]>>
-  ): Promise<string> => {
-    const trimmed = name.trim();
-    if (!trimmed) return "";
-    const existing = cache.find(item => item.name.toLowerCase() === trimmed.toLowerCase());
-    if (existing) return existing.id;
-
-    const { data, error } = await supabase.from(table).insert({ name: trimmed }).select("id, name").single();
-    if (error) {
-      const { data: fetched } = await supabase.from(table).select("id, name").ilike("name", trimmed).single();
-      if (fetched) {
-        setCache(prev => [...prev, fetched as LookupItem]);
-        return (fetched as LookupItem).id;
-      }
-      throw new Error(`Failed to resolve ${table}: ${trimmed}`);
-    }
-    setCache(prev => [...prev, data as LookupItem]);
-    return (data as LookupItem).id;
-  };
 
   const importSingleProduct = async () => {
     if (!gtin.trim() || !description.trim()) {
@@ -58,20 +20,16 @@ const AdminProductImport = () => {
       return;
     }
 
-    const productData: Record<string, string> = {
+    const { error } = await supabase.from("products").insert({
       gtin: gtin.trim(),
       description: description.trim(),
-    };
-    if (categoryGroupId) productData.category_group_id = categoryGroupId;
-
-    const { error } = await supabase.from("products").insert(productData);
+    });
     if (error) {
       toast({ title: "Error", description: error.message, variant: "destructive" });
     } else {
       toast({ title: "Success", description: "Product imported successfully" });
       setGtin("");
       setDescription("");
-      setCategoryGroupId("");
     }
   };
 
@@ -89,22 +47,14 @@ const AdminProductImport = () => {
 
       for (const line of lines) {
         const parts = line.split(",").map(s => s.trim());
-        const [gtinVal, descVal, cgName] = parts;
+        const [gtinVal, descVal] = parts;
         if (!gtinVal || !descVal) continue;
 
-        const product: Record<string, string> = { gtin: gtinVal, description: descVal };
-
-        try {
-          if (cgName) product.category_group_id = await resolveOrCreateLookup("category_groups", cgName, categoryGroups, setCategoryGroups);
-        } catch {
-          continue;
-        }
-
-        products.push(product);
+        products.push({ gtin: gtinVal, description: descVal });
       }
 
       if (products.length === 0) {
-        toast({ title: "Error", description: "No valid products found. Format: GTIN,Description,Category Group", variant: "destructive" });
+        toast({ title: "Error", description: "No valid products found. Format: GTIN,Description", variant: "destructive" });
         setIsImporting(false);
         return;
       }
@@ -174,7 +124,7 @@ const AdminProductImport = () => {
               Admin: Import Products
             </h2>
             <p className="text-lg text-muted-foreground">
-              Add products to the database by GTIN, description, and classification
+              Add products to the database by GTIN and description
             </p>
           </div>
 
@@ -195,15 +145,6 @@ const AdminProductImport = () => {
                   <label className="mb-2 block text-sm font-medium text-foreground">Product Description</label>
                   <Input placeholder="Enter product description" value={description} onChange={(e) => setDescription(e.target.value)} />
                 </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-foreground">Category Group</label>
-                  <Select value={categoryGroupId} onValueChange={setCategoryGroupId}>
-                    <SelectTrigger><SelectValue placeholder="Select Category Group" /></SelectTrigger>
-                    <SelectContent>
-                      {categoryGroups.map(cg => <SelectItem key={cg.id} value={cg.id}>{cg.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
                 <Button className="w-full" onClick={importSingleProduct}>Import Product</Button>
               </CardContent>
             </Card>
@@ -219,14 +160,14 @@ const AdminProductImport = () => {
                 <div>
                   <label className="mb-2 block text-sm font-medium text-foreground">Product Data</label>
                   <Textarea
-                    placeholder={"Format: GTIN,Description,Category Group\nOne product per line\nExample:\n1234567890123,Organic Milk 1L,DAIRY\n9876543210987,Whole Wheat Bread,BAKERY"}
+                    placeholder={"Format: GTIN,Description\nOne product per line\nExample:\n1234567890123,Organic Milk 1L\n9876543210987,Whole Wheat Bread"}
                     value={bulkData}
                     onChange={(e) => setBulkData(e.target.value)}
                     rows={10}
                     className="font-mono text-sm"
                   />
                   <p className="mt-2 text-xs text-muted-foreground">
-                    Enter one product per line in format: GTIN,Description,Category Group
+                    Enter one product per line in format: GTIN,Description
                   </p>
                 </div>
                 <Button className="w-full" onClick={importBulkProducts} disabled={isImporting}>
