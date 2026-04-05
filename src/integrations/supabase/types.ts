@@ -144,49 +144,20 @@ export type Database = {
           },
         ]
       }
-      category_groups: {
-        Row: {
-          created_at: string | null
-          id: string
-          name: string
-        }
-        Insert: {
-          created_at?: string | null
-          id?: string
-          name: string
-        }
-        Update: {
-          created_at?: string | null
-          id?: string
-          name?: string
-        }
-        Relationships: []
-      }
       products: {
         Row: {
-          category_group_id: string | null
           description: string
           gtin: string
         }
         Insert: {
-          category_group_id?: string | null
           description: string
           gtin: string
         }
         Update: {
-          category_group_id?: string | null
           description?: string
           gtin?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "products_category_group_id_fkey"
-            columns: ["category_group_id"]
-            isOneToOne: false
-            referencedRelation: "category_groups"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       profiles: {
         Row: {
