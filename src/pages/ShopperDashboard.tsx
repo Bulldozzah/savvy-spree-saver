@@ -61,14 +61,8 @@ const ShopperDashboard = () => {
     loadStores();
     loadShoppingLists();
     loadUserProfile();
-    searchProducts("", "all");
-    loadFilterData();
+    searchProducts("");
   }, []);
-
-  const loadFilterData = async () => {
-    const { data } = await supabase.from("category_groups").select("*").order("name");
-    if (data) setCategoryGroups(data);
-  };
 
   // Auto-load prices when store or list items change
   useEffect(() => {
