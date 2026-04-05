@@ -786,9 +786,6 @@ const DashboardContent = ({
   setViewListDialogOpen: (open: boolean) => void;
   viewingListId: string;
   setViewingListId: (id: string) => void;
-  categoryGroups: any[];
-  filterCategoryGroup: string;
-  handleFilterChange: (type: "categoryGroup", value: string) => void;
 }) => {
   return (
     <div className="flex flex-1 flex-col w-full">
