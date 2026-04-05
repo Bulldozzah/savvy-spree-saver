@@ -20,26 +20,16 @@ export function ProductsView() {
   const { toast } = useToast();
   const [gtin, setGtin] = useState("");
   const [description, setDescription] = useState("");
-  const [departmentId, setDepartmentId] = useState("");
   const [categoryGroupId, setCategoryGroupId] = useState("");
-  const [merchandiseCategoryId, setMerchandiseCategoryId] = useState("");
   const [csvFile, setCsvFile] = useState<File | null>(null);
   const [isUploadingCsv, setIsUploadingCsv] = useState(false);
 
-  const [departments, setDepartments] = useState<LookupItem[]>([]);
   const [categoryGroups, setCategoryGroups] = useState<LookupItem[]>([]);
-  const [merchandiseCategories, setMerchandiseCategories] = useState<LookupItem[]>([]);
 
   useEffect(() => {
     const fetchLookups = async () => {
-      const [dRes, cgRes, mcRes] = await Promise.all([
-        supabase.from("departments").select("id, name").order("name"),
-        supabase.from("category_groups").select("id, name").order("name"),
-        supabase.from("merchandise_categories").select("id, name").order("name"),
-      ]);
-      if (dRes.data) setDepartments(dRes.data as LookupItem[]);
-      if (cgRes.data) setCategoryGroups(cgRes.data as LookupItem[]);
-      if (mcRes.data) setMerchandiseCategories(mcRes.data as LookupItem[]);
+      const { data } = await supabase.from("category_groups").select("id, name").order("name");
+      if (data) setCategoryGroups(data as LookupItem[]);
     };
     fetchLookups();
   }, []);
@@ -55,9 +45,7 @@ export function ProductsView() {
       gtin: result.data.gtin,
       description: result.data.description,
     };
-    if (departmentId) productData.department_id = departmentId;
     if (categoryGroupId) productData.category_group_id = categoryGroupId;
-    if (merchandiseCategoryId) productData.merchandise_category_id = merchandiseCategoryId;
 
     const { error } = await supabase.from("products").insert(productData);
     if (error) {
@@ -66,9 +54,7 @@ export function ProductsView() {
       toast({ title: "Success", description: "Product created" });
       setGtin("");
       setDescription("");
-      setDepartmentId("");
       setCategoryGroupId("");
-      setMerchandiseCategoryId("");
     }
   };
 
@@ -115,7 +101,7 @@ export function ProductsView() {
 
       for (let i = startIndex; i < lines.length; i++) {
         const parts = lines[i].split(",").map(s => s.trim());
-        const [gtinVal, descVal, deptName, cgName, mcName] = parts;
+        const [gtinVal, descVal, cgName] = parts;
 
         if (!gtinVal || !descVal) {
           validationErrors.push(`Line ${i + 1}: Missing GTIN or description`);
@@ -134,9 +120,7 @@ export function ProductsView() {
         };
 
         try {
-          if (deptName) product.department_id = await resolveOrCreateLookup("departments", deptName, departments, setDepartments);
           if (cgName) product.category_group_id = await resolveOrCreateLookup("category_groups", cgName, categoryGroups, setCategoryGroups);
-          if (mcName) product.merchandise_category_id = await resolveOrCreateLookup("merchandise_categories", mcName, merchandiseCategories, setMerchandiseCategories);
         } catch (err: any) {
           validationErrors.push(`Line ${i + 1}: ${err.message}`);
           continue;
@@ -152,7 +136,7 @@ export function ProductsView() {
       }
 
       if (products.length === 0) {
-        toast({ title: "Error", description: "No valid products found. Format: GTIN,Description,Department,Category Group,Merchandise Category", variant: "destructive" });
+        toast({ title: "Error", description: "No valid products found. Format: GTIN,Description,Category Group", variant: "destructive" });
         setIsUploadingCsv(false);
         return;
       }
@@ -228,24 +212,10 @@ export function ProductsView() {
           <Input placeholder="GTIN (8-14 digits)" value={gtin} onChange={(e) => setGtin(e.target.value)} />
           <Input placeholder="Product Description" value={description} onChange={(e) => setDescription(e.target.value)} />
 
-          <Select value={departmentId} onValueChange={setDepartmentId}>
-            <SelectTrigger><SelectValue placeholder="Select Department" /></SelectTrigger>
-            <SelectContent>
-              {departments.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-
           <Select value={categoryGroupId} onValueChange={setCategoryGroupId}>
             <SelectTrigger><SelectValue placeholder="Select Category Group" /></SelectTrigger>
             <SelectContent>
               {categoryGroups.map(cg => <SelectItem key={cg.id} value={cg.id}>{cg.name}</SelectItem>)}
-            </SelectContent>
-          </Select>
-
-          <Select value={merchandiseCategoryId} onValueChange={setMerchandiseCategoryId}>
-            <SelectTrigger><SelectValue placeholder="Select Merchandise Category" /></SelectTrigger>
-            <SelectContent>
-              {merchandiseCategories.map(mc => <SelectItem key={mc.id} value={mc.id}>{mc.name}</SelectItem>)}
             </SelectContent>
           </Select>
 
@@ -259,7 +229,7 @@ export function ProductsView() {
         </CardHeader>
         <CardContent className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Upload a CSV file with format: GTIN,Description,Department,Category Group,Merchandise Category
+            Upload a CSV file with format: GTIN,Description,Category Group
           </p>
           <Input id="csv-upload" type="file" accept=".csv" onChange={(e) => setCsvFile(e.target.files?.[0] || null)} />
           <Button onClick={handleCsvUpload} disabled={isUploadingCsv}>

@@ -57,30 +57,20 @@ const ShopperDashboard = () => {
   const [viewingListId, setViewingListId] = useState<string>("");
 
   // Category filter state
-  const [departments, setDepartments] = useState<any[]>([]);
   const [categoryGroups, setCategoryGroups] = useState<any[]>([]);
-  const [merchandiseCategories, setMerchandiseCategories] = useState<any[]>([]);
-  const [filterDepartment, setFilterDepartment] = useState<string>("all");
   const [filterCategoryGroup, setFilterCategoryGroup] = useState<string>("all");
-  const [filterMerchandiseCategory, setFilterMerchandiseCategory] = useState<string>("all");
 
   useEffect(() => {
     loadStores();
     loadShoppingLists();
     loadUserProfile();
-    searchProducts("", "all", "all", "all");
+    searchProducts("", "all");
     loadFilterData();
   }, []);
 
   const loadFilterData = async () => {
-    const [deptRes, cgRes, mcRes] = await Promise.all([
-      supabase.from("departments").select("*").order("name"),
-      supabase.from("category_groups").select("*").order("name"),
-      supabase.from("merchandise_categories").select("*").order("name"),
-    ]);
-    setDepartments(deptRes.data || []);
-    setCategoryGroups(cgRes.data || []);
-    setMerchandiseCategories(mcRes.data || []);
+    const { data } = await supabase.from("category_groups").select("*").order("name");
+    if (data) setCategoryGroups(data);
   };
 
   // Auto-load prices when store or list items change
@@ -390,20 +380,15 @@ const ShopperDashboard = () => {
     }, 0);
   };
 
-  const searchProducts = async (term: string, deptId?: string, cgId?: string, mcId?: string) => {
+  const searchProducts = async (term: string, cgId?: string) => {
     let query = supabase.from("products").select("*");
     
     if (term.trim()) {
       query = query.or(`gtin.ilike.%${term}%,description.ilike.%${term}%`);
     }
 
-    const dept = deptId ?? filterDepartment;
     const cg = cgId ?? filterCategoryGroup;
-    const mc = mcId ?? filterMerchandiseCategory;
-
-    if (dept && dept !== "all") query = query.eq("department_id", dept);
     if (cg && cg !== "all") query = query.eq("category_group_id", cg);
-    if (mc && mc !== "all") query = query.eq("merchandise_category_id", mc);
     
     query = query.limit(100);
     
@@ -584,14 +569,9 @@ const ShopperDashboard = () => {
     debouncedSearch(value);
   };
 
-  const handleFilterChange = (type: "department" | "categoryGroup" | "merchandiseCategory", value: string) => {
-    const newDept = type === "department" ? value : filterDepartment;
-    const newCg = type === "categoryGroup" ? value : filterCategoryGroup;
-    const newMc = type === "merchandiseCategory" ? value : filterMerchandiseCategory;
-    if (type === "department") setFilterDepartment(value);
-    if (type === "categoryGroup") setFilterCategoryGroup(value);
-    if (type === "merchandiseCategory") setFilterMerchandiseCategory(value);
-    searchProducts(searchTerm, newDept, newCg, newMc);
+  const handleFilterChange = (type: "categoryGroup", value: string) => {
+    setFilterCategoryGroup(value);
+    searchProducts(searchTerm, value);
   };
 
   const handleLogout = async () => {
@@ -707,12 +687,8 @@ const ShopperDashboard = () => {
         setViewListDialogOpen={setViewListDialogOpen}
         viewingListId={viewingListId}
         setViewingListId={setViewingListId}
-        departments={departments}
         categoryGroups={categoryGroups}
-        merchandiseCategories={merchandiseCategories}
-        filterDepartment={filterDepartment}
         filterCategoryGroup={filterCategoryGroup}
-        filterMerchandiseCategory={filterMerchandiseCategory}
         handleFilterChange={handleFilterChange}
       />
     </SmartShopperLayout>
@@ -774,12 +750,8 @@ const DashboardContent = ({
   setViewListDialogOpen,
   viewingListId,
   setViewingListId,
-  departments,
   categoryGroups,
-  merchandiseCategories,
-  filterDepartment,
   filterCategoryGroup,
-  filterMerchandiseCategory,
   handleFilterChange,
 }: {
   activeSection: number;
@@ -836,13 +808,9 @@ const DashboardContent = ({
   setViewListDialogOpen: (open: boolean) => void;
   viewingListId: string;
   setViewingListId: (id: string) => void;
-  departments: any[];
   categoryGroups: any[];
-  merchandiseCategories: any[];
-  filterDepartment: string;
   filterCategoryGroup: string;
-  filterMerchandiseCategory: string;
-  handleFilterChange: (type: "department" | "categoryGroup" | "merchandiseCategory", value: string) => void;
+  handleFilterChange: (type: "categoryGroup", value: string) => void;
 }) => {
   return (
     <div className="flex flex-1 flex-col w-full">
@@ -1672,49 +1640,19 @@ const DashboardContent = ({
                   onChange={(e) => handleSearchChange(e.target.value)}
                 />
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-muted-foreground">Department</label>
-                    <Select value={filterDepartment} onValueChange={(v) => handleFilterChange("department", v)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Departments" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Departments</SelectItem>
-                        {departments.map((d: any) => (
-                          <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-muted-foreground">Category Group</label>
-                    <Select value={filterCategoryGroup} onValueChange={(v) => handleFilterChange("categoryGroup", v)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Category Groups" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Category Groups</SelectItem>
-                        {categoryGroups.map((cg: any) => (
-                          <SelectItem key={cg.id} value={cg.id}>{cg.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-1">
-                    <label className="text-sm font-medium text-muted-foreground">Merchandise Category</label>
-                    <Select value={filterMerchandiseCategory} onValueChange={(v) => handleFilterChange("merchandiseCategory", v)}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="All Merchandise Categories" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Merchandise Categories</SelectItem>
-                        {merchandiseCategories.map((mc: any) => (
-                          <SelectItem key={mc.id} value={mc.id}>{mc.name}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="space-y-1">
+                  <label className="text-sm font-medium text-muted-foreground">Category Group</label>
+                  <Select value={filterCategoryGroup} onValueChange={(v) => handleFilterChange("categoryGroup", v)}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="All Category Groups" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="all">All Category Groups</SelectItem>
+                      {categoryGroups.map((cg: any) => (
+                        <SelectItem key={cg.id} value={cg.id}>{cg.name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
                 </div>
 
                 <div className="space-y-2 max-h-[600px] overflow-y-auto">
