@@ -198,29 +198,11 @@ const AdminProductImport = () => {
                   <Input placeholder="Enter product description" value={description} onChange={(e) => setDescription(e.target.value)} />
                 </div>
                 <div>
-                  <label className="mb-2 block text-sm font-medium text-foreground">Department</label>
-                  <Select value={departmentId} onValueChange={setDepartmentId}>
-                    <SelectTrigger><SelectValue placeholder="Select Department" /></SelectTrigger>
-                    <SelectContent>
-                      {departments.map(d => <SelectItem key={d.id} value={d.id}>{d.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
                   <label className="mb-2 block text-sm font-medium text-foreground">Category Group</label>
                   <Select value={categoryGroupId} onValueChange={setCategoryGroupId}>
                     <SelectTrigger><SelectValue placeholder="Select Category Group" /></SelectTrigger>
                     <SelectContent>
                       {categoryGroups.map(cg => <SelectItem key={cg.id} value={cg.id}>{cg.name}</SelectItem>)}
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <label className="mb-2 block text-sm font-medium text-foreground">Merchandise Category</label>
-                  <Select value={merchandiseCategoryId} onValueChange={setMerchandiseCategoryId}>
-                    <SelectTrigger><SelectValue placeholder="Select Merchandise Category" /></SelectTrigger>
-                    <SelectContent>
-                      {merchandiseCategories.map(mc => <SelectItem key={mc.id} value={mc.id}>{mc.name}</SelectItem>)}
                     </SelectContent>
                   </Select>
                 </div>
