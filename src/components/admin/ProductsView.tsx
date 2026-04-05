@@ -45,9 +45,7 @@ export function ProductsView() {
       gtin: result.data.gtin,
       description: result.data.description,
     };
-    if (departmentId) productData.department_id = departmentId;
     if (categoryGroupId) productData.category_group_id = categoryGroupId;
-    if (merchandiseCategoryId) productData.merchandise_category_id = merchandiseCategoryId;
 
     const { error } = await supabase.from("products").insert(productData);
     if (error) {
