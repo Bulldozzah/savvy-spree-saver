@@ -221,7 +221,7 @@ const AdminProductImport = () => {
                 <div>
                   <label className="mb-2 block text-sm font-medium text-foreground">Product Data</label>
                   <Textarea
-                    placeholder={"Format: GTIN,Description,Department,Category Group,Merchandise Category\nOne product per line\nExample:\n1234567890123,Organic Milk 1L,Groceries,DAIRY,FRESH MILK\n9876543210987,Whole Wheat Bread,Groceries,BAKERY,BREAD"}
+                    placeholder={"Format: GTIN,Description,Category Group\nOne product per line\nExample:\n1234567890123,Organic Milk 1L,DAIRY\n9876543210987,Whole Wheat Bread,BAKERY"}
                     value={bulkData}
                     onChange={(e) => setBulkData(e.target.value)}
                     rows={10}
