@@ -89,7 +89,7 @@ const AdminProductImport = () => {
 
       for (const line of lines) {
         const parts = line.split(",").map(s => s.trim());
-        const [gtinVal, descVal, deptName, cgName, mcName] = parts;
+        const [gtinVal, descVal, cgName] = parts;
         if (!gtinVal || !descVal) continue;
 
         const product: Record<string, string> = { gtin: gtinVal, description: descVal };
