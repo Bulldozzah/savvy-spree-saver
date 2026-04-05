@@ -64,7 +64,7 @@ const ShopperDashboard = () => {
     loadStores();
     loadShoppingLists();
     loadUserProfile();
-    searchProducts("", "all", "all", "all");
+    searchProducts("", "all");
     loadFilterData();
   }, []);
 
