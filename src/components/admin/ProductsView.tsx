@@ -101,7 +101,7 @@ export function ProductsView() {
 
       for (let i = startIndex; i < lines.length; i++) {
         const parts = lines[i].split(",").map(s => s.trim());
-        const [gtinVal, descVal, deptName, cgName, mcName] = parts;
+        const [gtinVal, descVal, cgName] = parts;
 
         if (!gtinVal || !descVal) {
           validationErrors.push(`Line ${i + 1}: Missing GTIN or description`);
