@@ -750,12 +750,8 @@ const DashboardContent = ({
   setViewListDialogOpen,
   viewingListId,
   setViewingListId,
-  departments,
   categoryGroups,
-  merchandiseCategories,
-  filterDepartment,
   filterCategoryGroup,
-  filterMerchandiseCategory,
   handleFilterChange,
 }: {
   activeSection: number;
@@ -812,13 +808,9 @@ const DashboardContent = ({
   setViewListDialogOpen: (open: boolean) => void;
   viewingListId: string;
   setViewingListId: (id: string) => void;
-  departments: any[];
   categoryGroups: any[];
-  merchandiseCategories: any[];
-  filterDepartment: string;
   filterCategoryGroup: string;
-  filterMerchandiseCategory: string;
-  handleFilterChange: (type: "department" | "categoryGroup" | "merchandiseCategory", value: string) => void;
+  handleFilterChange: (type: "categoryGroup", value: string) => void;
 }) => {
   return (
     <div className="flex flex-1 flex-col w-full">
