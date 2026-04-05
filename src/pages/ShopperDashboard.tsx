@@ -557,10 +557,6 @@ const ShopperDashboard = () => {
     debouncedSearch(value);
   };
 
-  const handleFilterChange = (type: "categoryGroup", value: string) => {
-    setFilterCategoryGroup(value);
-    searchProducts(searchTerm, value);
-  };
 
   const handleLogout = async () => {
     const { error } = await supabase.auth.signOut();
