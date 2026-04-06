@@ -480,6 +480,8 @@ const StoreOwnerContent = ({
   profileDialogOpen,
   setProfileDialogOpen,
   loadUserProfile,
+  verifiedStatus,
+  sourceStatus,
 }: any) => {
   return (
     <div className="flex flex-1 flex-col w-full">
