@@ -42,6 +42,8 @@ const StoreOwnerDashboard = () => {
   const [storeContact, setStoreContact] = useState({ email: "", contact: "", whatsapp: "" });
   const [isSavingContact, setIsSavingContact] = useState(false);
   const [activeSection, setActiveSection] = useState<number>(0);
+  const [verifiedStatus, setVerifiedStatus] = useState<Record<string, boolean>>({});
+  const [sourceStatus, setSourceStatus] = useState<Record<string, string>>({});
 
   useEffect(() => {
     loadStores();
