@@ -235,6 +235,8 @@ const StoreOwnerDashboard = () => {
       return;
     }
 
+    const { data: { user } } = await supabase.auth.getUser();
+
     const { error } = await supabase
       .from("store_prices")
       .upsert({
@@ -242,6 +244,10 @@ const StoreOwnerDashboard = () => {
         product_gtin: result.data.gtin,
         price: result.data.price,
         in_stock: inStock[gtin] ?? true,
+        verified: true,
+        source: 'store_owner',
+        verified_by: user?.id,
+        updated_by: user?.id,
       }, {
         onConflict: 'store_id,product_gtin'
       });
