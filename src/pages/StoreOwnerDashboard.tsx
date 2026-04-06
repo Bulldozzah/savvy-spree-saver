@@ -605,9 +605,12 @@ const StoreOwnerContent = ({
                       </div>
                       <div className="flex items-center gap-2">
                         {currentPrices[product.gtin] && (
-                          <span className="text-sm text-muted-foreground whitespace-nowrap">
-                            Current: {currencySymbol}{currentPrices[product.gtin]}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">
+                              Current: {currencySymbol}{currentPrices[product.gtin]}
+                            </span>
+                            <VerifiedBadge verified={verifiedStatus[product.gtin] ?? false} />
+                          </div>
                         )}
                         <Input
                           type="number"
