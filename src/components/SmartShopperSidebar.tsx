@@ -44,6 +44,7 @@ interface NavItem {
 const shopperNavItems: NavItem[] = [
   { icon: LayoutDashboard, label: 'Dashboard', view: 'dashboard', roles: ['shopper', 'super_admin'] },
   { icon: DollarSign, label: 'Search & Add Products', view: 'search-add-products', roles: ['shopper', 'super_admin'] },
+  { icon: Camera, label: 'Scan & Update Price', view: 'scan-price', roles: ['shopper', 'super_admin'] },
   { icon: GitCompare, label: 'Compare Prices', view: 'compare', roles: ['shopper', 'super_admin'] },
   { icon: ListChecks, label: 'Shopping Lists', view: 'lists', roles: ['shopper', 'super_admin'] },
   { icon: MessageSquare, label: 'Store Feedback', view: 'my-feedback', roles: ['shopper', 'super_admin'] },
