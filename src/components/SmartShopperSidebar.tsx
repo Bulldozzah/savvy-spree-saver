@@ -12,7 +12,8 @@ import {
   Package,
   User,
   LogOut,
-  Star
+  Star,
+  Camera
 } from 'lucide-react';
 import {
   Sidebar,
