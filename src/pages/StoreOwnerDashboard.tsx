@@ -442,6 +442,8 @@ const StoreOwnerDashboard = () => {
         profileDialogOpen={profileDialogOpen}
         setProfileDialogOpen={setProfileDialogOpen}
         loadUserProfile={loadUserProfile}
+        verifiedStatus={verifiedStatus}
+        sourceStatus={sourceStatus}
       />
     </SmartShopperLayout>
   );
