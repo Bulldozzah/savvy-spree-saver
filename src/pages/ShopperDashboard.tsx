@@ -20,6 +20,7 @@ import { BudgetAISuggestions } from "@/components/BudgetAISuggestions";
 import FloatingActionMenu from "@/components/ui/floating-action-menu";
 import { AutoListCreator } from "@/components/AutoListCreator";
 import { AnimatedButton } from "@/components/ui/animated-button";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { countries } from "@/data/countries";
 import { cn } from "@/lib/utils";
 import { SmartShopperLayout } from "@/components/SmartShopperSidebar";
