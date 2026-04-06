@@ -283,7 +283,8 @@ const StoreOwnerDashboard = () => {
 
     setIsImporting(true);
     const lines = csvData.trim().split("\n");
-    const priceUpdates: Array<{ store_id: string; product_gtin: string; price: number }> = [];
+    const { data: { user } } = await supabase.auth.getUser();
+    const priceUpdates: Array<{ store_id: string; product_gtin: string; price: number; verified: boolean; source: string; verified_by: string | undefined; updated_by: string | undefined }> = [];
     const errors: string[] = [];
 
     lines.forEach((line, index) => {
@@ -305,6 +306,10 @@ const StoreOwnerDashboard = () => {
         store_id: selectedStoreId,
         product_gtin: result.data.gtin,
         price: result.data.price,
+        verified: true,
+        source: 'store_owner',
+        verified_by: user?.id,
+        updated_by: user?.id,
       });
     });
 
