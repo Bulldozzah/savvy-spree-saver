@@ -156,7 +156,7 @@ const BarcodePriceScanner = () => {
     <SmartShopperLayout
       userRole="shopper"
       activeView="scan-price"
-      onNavigate={() => {}}
+      onNavigate={handleNavigate}
       onLogout={handleLogout}
     >
       <div className="flex flex-col gap-4 max-w-lg mx-auto w-full">
