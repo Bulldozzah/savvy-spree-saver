@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DollarSign, Package, Upload, Store, User, Phone, MessageSquare, LogOut } from "lucide-react";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { debounce } from "lodash";
 import { z } from "zod";
 import { ProfileEditor } from "@/components/ProfileEditor";
