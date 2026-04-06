@@ -925,6 +925,10 @@ const DashboardContent = ({
                                       {item.in_stock ? "Available" : "Not Available"}
                                     </span>
                                   </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Price:</span>
+                                    <span className="ml-2"><VerifiedBadge verified={item.verified} /></span>
+                                  </div>
                                 </div>
                               </div>
                             </div>
