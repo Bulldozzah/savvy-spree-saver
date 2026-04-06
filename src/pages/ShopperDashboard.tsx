@@ -278,7 +278,7 @@ const ShopperDashboard = () => {
       const gtins = data.map(item => item.product_gtin);
       const { data: prices } = await supabase
         .from("store_prices")
-        .select("product_gtin, price, in_stock")
+        .select("product_gtin, price, in_stock, verified")
         .eq("store_id", selectedList.assigned_store_id)
         .in("product_gtin", gtins);
 
