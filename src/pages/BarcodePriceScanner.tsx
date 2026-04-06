@@ -140,9 +140,16 @@ const BarcodePriceScanner = () => {
     setProductNotFound(false);
   };
 
+  const navigate = useNavigate();
+
   const handleLogout = async () => {
     await supabase.auth.signOut();
     window.location.href = "/";
+  };
+
+  const handleNavigate = (view: string) => {
+    if (view === 'scan-price') return; // already here
+    navigate('/shop');
   };
 
   return (
