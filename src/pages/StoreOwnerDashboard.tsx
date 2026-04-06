@@ -132,13 +132,19 @@ const StoreOwnerDashboard = () => {
     
     const priceMap: Record<string, string> = {};
     const stockMap: Record<string, boolean> = {};
-    data?.forEach((p) => {
+    const verifiedMap: Record<string, boolean> = {};
+    const sourceMap: Record<string, string> = {};
+    data?.forEach((p: any) => {
       priceMap[p.product_gtin] = p.price.toString();
       stockMap[p.product_gtin] = p.in_stock ?? true;
+      verifiedMap[p.product_gtin] = p.verified ?? false;
+      sourceMap[p.product_gtin] = p.source ?? 'store_owner';
     });
     setPrices(priceMap);
     setCurrentPrices(priceMap);
     setInStock(stockMap);
+    setVerifiedStatus(verifiedMap);
+    setSourceStatus(sourceMap);
   };
 
   const loadStoreContact = async (storeId: string) => {
