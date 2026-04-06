@@ -287,7 +287,8 @@ const ShopperDashboard = () => {
         return {
           ...item,
           price: priceData?.price,
-          in_stock: priceData?.in_stock ?? false
+          in_stock: priceData?.in_stock ?? false,
+          verified: priceData?.verified ?? false,
         };
       });
 
