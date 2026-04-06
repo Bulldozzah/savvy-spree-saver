@@ -21,6 +21,7 @@ import ExpandableTabsDemo from "./pages/ExpandableTabsDemo";
 import HoverGradientNavBarDemo from "./pages/HoverGradientNavBarDemo";
 import FallingPatternDemo from "./pages/FallingPatternDemo";
 import FluidDropdownDemo from "./pages/FluidDropdownDemo";
+import BarcodePriceScanner from "./pages/BarcodePriceScanner";
 import NotFound from "./pages/NotFound";
 
 const AppContent = () => {
