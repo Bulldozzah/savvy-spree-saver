@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { DollarSign, Package, Upload, Store, User, Phone, MessageSquare, LogOut } from "lucide-react";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { debounce } from "lodash";
 import { z } from "zod";
 import { ProfileEditor } from "@/components/ProfileEditor";
@@ -41,6 +42,8 @@ const StoreOwnerDashboard = () => {
   const [storeContact, setStoreContact] = useState({ email: "", contact: "", whatsapp: "" });
   const [isSavingContact, setIsSavingContact] = useState(false);
   const [activeSection, setActiveSection] = useState<number>(0);
+  const [verifiedStatus, setVerifiedStatus] = useState<Record<string, boolean>>({});
+  const [sourceStatus, setSourceStatus] = useState<Record<string, string>>({});
 
   useEffect(() => {
     loadStores();
@@ -131,13 +134,19 @@ const StoreOwnerDashboard = () => {
     
     const priceMap: Record<string, string> = {};
     const stockMap: Record<string, boolean> = {};
-    data?.forEach((p) => {
+    const verifiedMap: Record<string, boolean> = {};
+    const sourceMap: Record<string, string> = {};
+    data?.forEach((p: any) => {
       priceMap[p.product_gtin] = p.price.toString();
       stockMap[p.product_gtin] = p.in_stock ?? true;
+      verifiedMap[p.product_gtin] = p.verified ?? false;
+      sourceMap[p.product_gtin] = p.source ?? 'store_owner';
     });
     setPrices(priceMap);
     setCurrentPrices(priceMap);
     setInStock(stockMap);
+    setVerifiedStatus(verifiedMap);
+    setSourceStatus(sourceMap);
   };
 
   const loadStoreContact = async (storeId: string) => {
@@ -235,6 +244,8 @@ const StoreOwnerDashboard = () => {
       return;
     }
 
+    const { data: { user } } = await supabase.auth.getUser();
+
     const { error } = await supabase
       .from("store_prices")
       .upsert({
@@ -242,6 +253,10 @@ const StoreOwnerDashboard = () => {
         product_gtin: result.data.gtin,
         price: result.data.price,
         in_stock: inStock[gtin] ?? true,
+        verified: true,
+        source: 'store_owner',
+        verified_by: user?.id,
+        updated_by: user?.id,
       }, {
         onConflict: 'store_id,product_gtin'
       });
@@ -277,7 +292,8 @@ const StoreOwnerDashboard = () => {
 
     setIsImporting(true);
     const lines = csvData.trim().split("\n");
-    const priceUpdates: Array<{ store_id: string; product_gtin: string; price: number }> = [];
+    const { data: { user } } = await supabase.auth.getUser();
+    const priceUpdates: Array<{ store_id: string; product_gtin: string; price: number; verified: boolean; source: string; verified_by: string | undefined; updated_by: string | undefined }> = [];
     const errors: string[] = [];
 
     lines.forEach((line, index) => {
@@ -299,6 +315,10 @@ const StoreOwnerDashboard = () => {
         store_id: selectedStoreId,
         product_gtin: result.data.gtin,
         price: result.data.price,
+        verified: true,
+        source: 'store_owner',
+        verified_by: user?.id,
+        updated_by: user?.id,
       });
     });
 
@@ -422,6 +442,8 @@ const StoreOwnerDashboard = () => {
         profileDialogOpen={profileDialogOpen}
         setProfileDialogOpen={setProfileDialogOpen}
         loadUserProfile={loadUserProfile}
+        verifiedStatus={verifiedStatus}
+        sourceStatus={sourceStatus}
       />
     </SmartShopperLayout>
   );
@@ -458,6 +480,8 @@ const StoreOwnerContent = ({
   profileDialogOpen,
   setProfileDialogOpen,
   loadUserProfile,
+  verifiedStatus,
+  sourceStatus,
 }: any) => {
   return (
     <div className="flex flex-1 flex-col w-full">
@@ -583,9 +607,12 @@ const StoreOwnerContent = ({
                       </div>
                       <div className="flex items-center gap-2">
                         {currentPrices[product.gtin] && (
-                          <span className="text-sm text-muted-foreground whitespace-nowrap">
-                            Current: {currencySymbol}{currentPrices[product.gtin]}
-                          </span>
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-muted-foreground whitespace-nowrap">
+                              Current: {currencySymbol}{currentPrices[product.gtin]}
+                            </span>
+                            <VerifiedBadge verified={verifiedStatus[product.gtin] ?? false} />
+                          </div>
                         )}
                         <Input
                           type="number"

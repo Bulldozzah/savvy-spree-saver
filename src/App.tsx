@@ -21,6 +21,7 @@ import ExpandableTabsDemo from "./pages/ExpandableTabsDemo";
 import HoverGradientNavBarDemo from "./pages/HoverGradientNavBarDemo";
 import FallingPatternDemo from "./pages/FallingPatternDemo";
 import FluidDropdownDemo from "./pages/FluidDropdownDemo";
+import BarcodePriceScanner from "./pages/BarcodePriceScanner";
 import NotFound from "./pages/NotFound";
 
 const AppContent = () => {
@@ -184,6 +185,10 @@ const AppContent = () => {
             <Route
               path="/shop"
               element={user && (userRole === "shopper" || !userRole) ? <ShopperDashboard /> : <Navigate to="/auth" replace />}
+            />
+            <Route
+              path="/scan"
+              element={user && (userRole === "shopper" || !userRole) ? <BarcodePriceScanner /> : <Navigate to="/auth" replace />}
             />
             <Route path="*" element={<NotFound />} />
           </Routes>

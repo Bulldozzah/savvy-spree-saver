@@ -363,24 +363,36 @@ export type Database = {
           in_stock: boolean
           price: number
           product_gtin: string
+          source: string
           store_id: string
           updated_at: string | null
+          updated_by: string | null
+          verified: boolean
+          verified_by: string | null
         }
         Insert: {
           id?: string
           in_stock?: boolean
           price: number
           product_gtin: string
+          source?: string
           store_id: string
           updated_at?: string | null
+          updated_by?: string | null
+          verified?: boolean
+          verified_by?: string | null
         }
         Update: {
           id?: string
           in_stock?: boolean
           price?: number
           product_gtin?: string
+          source?: string
           store_id?: string
           updated_at?: string | null
+          updated_by?: string | null
+          verified?: boolean
+          verified_by?: string | null
         }
         Relationships: [
           {

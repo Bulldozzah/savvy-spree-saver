@@ -1,4 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/neon-button";
@@ -19,6 +20,7 @@ import { BudgetAISuggestions } from "@/components/BudgetAISuggestions";
 import FloatingActionMenu from "@/components/ui/floating-action-menu";
 import { AutoListCreator } from "@/components/AutoListCreator";
 import { AnimatedButton } from "@/components/ui/animated-button";
+import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { countries } from "@/data/countries";
 import { cn } from "@/lib/utils";
 import { SmartShopperLayout } from "@/components/SmartShopperSidebar";
@@ -277,7 +279,7 @@ const ShopperDashboard = () => {
       const gtins = data.map(item => item.product_gtin);
       const { data: prices } = await supabase
         .from("store_prices")
-        .select("product_gtin, price, in_stock")
+        .select("product_gtin, price, in_stock, verified")
         .eq("store_id", selectedList.assigned_store_id)
         .in("product_gtin", gtins);
 
@@ -286,7 +288,8 @@ const ShopperDashboard = () => {
         return {
           ...item,
           price: priceData?.price,
-          in_stock: priceData?.in_stock ?? false
+          in_stock: priceData?.in_stock ?? false,
+          verified: priceData?.verified ?? false,
         };
       });
 
@@ -585,7 +588,12 @@ const ShopperDashboard = () => {
     'my-feedback': 4,
   };
 
+  const navigate = useNavigate();
   const handleNavigate = (view: string) => {
+    if (view === 'scan-price') {
+      navigate('/scan');
+      return;
+    }
     const section = viewToSection[view];
     if (section !== undefined) {
       setActiveSection(section);
@@ -916,6 +924,10 @@ const DashboardContent = ({
                                     )}>
                                       {item.in_stock ? "Available" : "Not Available"}
                                     </span>
+                                  </div>
+                                  <div>
+                                    <span className="text-muted-foreground">Price:</span>
+                                    <span className="ml-2"><VerifiedBadge verified={item.verified} /></span>
                                   </div>
                                 </div>
                               </div>
