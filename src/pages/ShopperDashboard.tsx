@@ -586,7 +586,12 @@ const ShopperDashboard = () => {
     'my-feedback': 4,
   };
 
+  const navigate = useNavigate();
   const handleNavigate = (view: string) => {
+    if (view === 'scan-price') {
+      navigate('/scan');
+      return;
+    }
     const section = viewToSection[view];
     if (section !== undefined) {
       setActiveSection(section);
