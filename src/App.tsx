@@ -191,6 +191,10 @@ const AppContent = () => {
               path="/scan"
               element={user && (userRole === "shopper" || !userRole) ? <BarcodePriceScanner /> : <Navigate to="/auth" replace />}
             />
+            <Route
+              path="/browse-store"
+              element={user && (userRole === "shopper" || !userRole) ? <BrowseStore /> : <Navigate to="/auth" replace />}
+            />
             <Route path="*" element={<NotFound />} />
           </Routes>
         </TooltipProvider>
