@@ -22,6 +22,7 @@ import HoverGradientNavBarDemo from "./pages/HoverGradientNavBarDemo";
 import FallingPatternDemo from "./pages/FallingPatternDemo";
 import FluidDropdownDemo from "./pages/FluidDropdownDemo";
 import BarcodePriceScanner from "./pages/BarcodePriceScanner";
+import BrowseStore from "./pages/BrowseStore";
 import NotFound from "./pages/NotFound";
 
 const AppContent = () => {
