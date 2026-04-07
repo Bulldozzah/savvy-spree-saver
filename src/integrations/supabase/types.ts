@@ -365,6 +365,7 @@ export type Database = {
           product_gtin: string
           source: string
           store_id: string
+          unverified_price: number | null
           updated_at: string | null
           updated_by: string | null
           verified: boolean
@@ -377,6 +378,7 @@ export type Database = {
           product_gtin: string
           source?: string
           store_id: string
+          unverified_price?: number | null
           updated_at?: string | null
           updated_by?: string | null
           verified?: boolean
@@ -389,6 +391,7 @@ export type Database = {
           product_gtin?: string
           source?: string
           store_id?: string
+          unverified_price?: number | null
           updated_at?: string | null
           updated_by?: string | null
           verified?: boolean
