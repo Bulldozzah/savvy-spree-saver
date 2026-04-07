@@ -594,6 +594,10 @@ const ShopperDashboard = () => {
       navigate('/scan');
       return;
     }
+    if (view === 'browse-store') {
+      navigate('/browse-store');
+      return;
+    }
     const section = viewToSection[view];
     if (section !== undefined) {
       setActiveSection(section);

@@ -22,6 +22,7 @@ import HoverGradientNavBarDemo from "./pages/HoverGradientNavBarDemo";
 import FallingPatternDemo from "./pages/FallingPatternDemo";
 import FluidDropdownDemo from "./pages/FluidDropdownDemo";
 import BarcodePriceScanner from "./pages/BarcodePriceScanner";
+import BrowseStore from "./pages/BrowseStore";
 import NotFound from "./pages/NotFound";
 
 const AppContent = () => {
@@ -189,6 +190,10 @@ const AppContent = () => {
             <Route
               path="/scan"
               element={user && (userRole === "shopper" || !userRole) ? <BarcodePriceScanner /> : <Navigate to="/auth" replace />}
+            />
+            <Route
+              path="/browse-store"
+              element={user && (userRole === "shopper" || !userRole) ? <BrowseStore /> : <Navigate to="/auth" replace />}
             />
             <Route path="*" element={<NotFound />} />
           </Routes>
