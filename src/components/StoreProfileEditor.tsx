@@ -15,7 +15,7 @@ declare global {
   }
 }
 
-const GOOGLE_MAPS_API_KEY = "AIzaSyBEBm7NkYPyL89G-tKiQGFc5YHcBuEBKpk";
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || "AIzaSyDbCduKXdyqjNPnfnJpudWXb7DQ3h86PZU";
 
 // Load Google Maps API with Places library
 const loadGoogleMapsScript = () => {
