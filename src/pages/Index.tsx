@@ -48,7 +48,7 @@ const Index = () => {
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                 <ShoppingBag className="w-6 h-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold text-foreground">We$hop</span>
+              <span className="text-xl font-bold text-foreground">Savio</span>
             </Link>
 
             {/* Desktop Navigation */}
@@ -188,7 +188,7 @@ const Index = () => {
               See the True Cost of Your Groceries
             </h2>
             <p className="text-lg text-slate-600 leading-relaxed">
-              We$hop empowers shoppers to make informed purchasing decisions through real-time price
+              Savio empowers shoppers to make informed purchasing decisions through real-time price
               comparisons. Our community-driven platform brings transparency to grocery shopping, helping you save
               money on every purchase.
             </p>
@@ -202,7 +202,7 @@ const Index = () => {
       {/* 6. Features Grid - 3 Columns */}
       <section className="py-16 bg-background">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-foreground text-center mb-12">Why Choose We$hop?</h2>
+          <h2 className="text-3xl font-bold text-foreground text-center mb-12">Why Choose Savio?</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
             {/* Feature 1 */}
             <div className="bg-card rounded-2xl p-6 shadow-lg hover:-translate-y-1 transition-transform duration-300">
