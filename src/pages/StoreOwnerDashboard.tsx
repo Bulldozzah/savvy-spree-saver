@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DollarSign, Package, Upload, Store, User, Phone, MessageSquare, LogOut } from "lucide-react";
+import { DollarSign, Package, Upload, Store, User, Phone, MessageSquare, LogOut, Download, FileSpreadsheet } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { debounce } from "lodash";
 import { z } from "zod";
@@ -284,6 +284,17 @@ const StoreOwnerDashboard = () => {
     reader.readAsText(file);
   };
 
+  const downloadSampleCsv = () => {
+    const sampleContent = "product_gtin,price,in_stock\n1234567890123,9.99,true\n9876543210987,14.50,true\n5551234567890,25.00,false";
+    const blob = new Blob([sampleContent], { type: 'text/csv' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'sample_bulk_prices.csv';
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
   const importBulkPrices = async () => {
     if (!selectedStoreId || !csvData.trim()) {
       toast({ title: "Error", description: "Please select a store and enter CSV data", variant: "destructive" });
@@ -293,13 +304,18 @@ const StoreOwnerDashboard = () => {
     setIsImporting(true);
     const lines = csvData.trim().split("\n");
     const { data: { user } } = await supabase.auth.getUser();
-    const priceUpdates: Array<{ store_id: string; product_gtin: string; price: number; verified: boolean; source: string; verified_by: string | undefined; updated_by: string | undefined }> = [];
+    const priceUpdates: Array<{ store_id: string; product_gtin: string; price: number; in_stock: boolean; verified: boolean; source: string; verified_by: string | undefined; updated_by: string | undefined }> = [];
     const errors: string[] = [];
 
-    lines.forEach((line, index) => {
-      const [gtin, price] = line.split(",").map((s) => s.trim());
+    // Detect if first line is a header row
+    const firstLine = lines[0].trim().toLowerCase();
+    const startIndex = firstLine.includes('product_gtin') || firstLine.includes('gtin') ? 1 : 0;
+
+    lines.slice(startIndex).forEach((line, index) => {
+      const parts = line.split(",").map((s) => s.trim());
+      const [gtin, price, stockStr] = parts;
       if (!gtin || !price) {
-        errors.push(`Line ${index + 1}: Invalid format (expected GTIN,Price)`);
+        errors.push(`Line ${index + startIndex + 1}: Invalid format (expected product_gtin,price,in_stock)`);
         return;
       }
       const parsedPrice = parseFloat(price);
@@ -307,14 +323,18 @@ const StoreOwnerDashboard = () => {
       // Validate using schema
       const result = priceSchema.safeParse({ gtin, price: parsedPrice });
       if (!result.success) {
-        errors.push(`Line ${index + 1}: ${result.error.issues[0].message}`);
+        errors.push(`Line ${index + startIndex + 1}: ${result.error.issues[0].message}`);
         return;
       }
+
+      // Parse in_stock: default to true if not provided
+      const inStockValue = stockStr !== undefined ? stockStr.toLowerCase() !== 'false' : true;
       
       priceUpdates.push({
         store_id: selectedStoreId,
         product_gtin: result.data.gtin,
         price: result.data.price,
+        in_stock: inStockValue,
         verified: true,
         source: 'store_owner',
         verified_by: user?.id,
@@ -434,6 +454,7 @@ const StoreOwnerDashboard = () => {
         selectedFile={selectedFile}
         handleFileUpload={handleFileUpload}
         importBulkPrices={importBulkPrices}
+        downloadSampleCsv={downloadSampleCsv}
         isImporting={isImporting}
         storeContact={storeContact}
         setStoreContact={setStoreContact}
@@ -472,6 +493,7 @@ const StoreOwnerContent = ({
   selectedFile,
   handleFileUpload,
   importBulkPrices,
+  downloadSampleCsv,
   isImporting,
   storeContact,
   setStoreContact,
@@ -532,6 +554,85 @@ const StoreOwnerContent = ({
             </Card>
           )}
         </div>
+
+        {/* Bulk CSV Upload */}
+        {activeSection === 0 && (
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <FileSpreadsheet className="h-5 w-5" />
+                Bulk Upload CSV
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
+                <p className="text-sm font-medium">
+                  Upload a CSV file to update multiple product prices at once.
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  CSV columns: <code className="bg-background px-2 py-1 rounded">product_gtin, price, in_stock</code>
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  All other fields (store_id, verified, verified_by, updated_by, source) are auto-filled.
+                </p>
+              </div>
+
+              <Button
+                variant="outline"
+                onClick={downloadSampleCsv}
+                className="flex items-center gap-2"
+              >
+                <Download className="h-4 w-4" />
+                Download Sample CSV
+              </Button>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Upload CSV File</label>
+                <div className="flex items-center gap-2">
+                  <Input
+                    type="file"
+                    accept=".csv"
+                    onChange={handleFileUpload}
+                    className="flex-1"
+                  />
+                  {selectedFile && (
+                    <span className="text-sm text-muted-foreground">
+                      {selectedFile.name}
+                    </span>
+                  )}
+                </div>
+              </div>
+
+              <div className="relative">
+                <div className="absolute inset-0 flex items-center">
+                  <span className="w-full border-t" />
+                </div>
+                <div className="relative flex justify-center text-xs uppercase">
+                  <span className="bg-background px-2 text-muted-foreground">
+                    Or paste CSV data
+                  </span>
+                </div>
+              </div>
+
+              <Textarea
+                placeholder={"product_gtin,price,in_stock\n1234567890123,9.99,true\n9876543210987,14.50,false"}
+                value={csvData}
+                onChange={(e) => setCsvData(e.target.value)}
+                rows={6}
+                className="font-mono text-sm"
+              />
+
+              <Button
+                onClick={importBulkPrices}
+                disabled={isImporting || !csvData.trim()}
+                className="w-full"
+              >
+                <Upload className="h-4 w-4 mr-2" />
+                {isImporting ? "Importing..." : "Import Prices"}
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Individual Price Updates */}
         {activeSection === 0 && (
@@ -630,78 +731,6 @@ const StoreOwnerContent = ({
                   </div>
                 ))}
               </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Bulk CSV Import */}
-        {activeSection === 1 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="h-5 w-5" />
-                Batch Price Update via CSV
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2 p-4 bg-muted/50 rounded-lg">
-                <p className="text-sm font-medium">
-                  Upload multiple product prices at once
-                </p>
-                <p className="text-sm text-muted-foreground">
-                  Format: <code className="bg-background px-2 py-1 rounded">GTIN,Price</code> (one per line)
-                </p>
-                <div className="text-xs text-muted-foreground space-y-1">
-                  <p>Example:</p>
-                  <code className="block bg-background px-2 py-1 rounded">1234567890123,9.99</code>
-                  <code className="block bg-background px-2 py-1 rounded">9876543210987,14.50</code>
-                  <code className="block bg-background px-2 py-1 rounded">5551234567890,25.00</code>
-                </div>
-              </div>
-
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Upload CSV File</label>
-                <div className="flex items-center gap-2">
-                  <Input
-                    type="file"
-                    accept=".csv"
-                    onChange={handleFileUpload}
-                    className="flex-1"
-                  />
-                  {selectedFile && (
-                    <span className="text-sm text-muted-foreground">
-                      {selectedFile.name}
-                    </span>
-                  )}
-                </div>
-              </div>
-
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase">
-                  <span className="bg-background px-2 text-muted-foreground">
-                    Or paste CSV data
-                  </span>
-                </div>
-              </div>
-
-              <Textarea
-                placeholder="1234567890123,9.99&#10;9876543210987,14.50"
-                value={csvData}
-                onChange={(e) => setCsvData(e.target.value)}
-                rows={10}
-                className="font-mono text-sm"
-              />
-
-              <Button 
-                onClick={importBulkPrices} 
-                disabled={isImporting || !csvData.trim()}
-                className="w-full"
-              >
-                {isImporting ? "Importing..." : "Import Prices"}
-              </Button>
             </CardContent>
           </Card>
         )}
