@@ -11,7 +11,7 @@ const Footer = () => {
               <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
                 <Mail className="w-6 h-6 text-primary-foreground" />
               </div>
-              <span className="text-xl font-bold text-white">Wise Shopper</span>
+              <span className="text-xl font-bold text-white">We$hop</span>
             </Link>
             <p className="text-sm text-slate-400">
               Empowering shoppers to save money through community-driven price comparison
