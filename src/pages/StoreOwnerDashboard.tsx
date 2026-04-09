@@ -7,7 +7,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { DollarSign, Package, Upload, Store, User, Phone, MessageSquare, LogOut, Download, FileSpreadsheet } from "lucide-react";
+import { DollarSign, Package, Upload, Store, User, Phone, MessageSquare, LogOut, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { debounce } from "lodash";
 import { z } from "zod";
@@ -44,6 +44,9 @@ const StoreOwnerDashboard = () => {
   const [activeSection, setActiveSection] = useState<number>(0);
   const [verifiedStatus, setVerifiedStatus] = useState<Record<string, boolean>>({});
   const [sourceStatus, setSourceStatus] = useState<Record<string, string>>({});
+  const [csvErrors, setCsvErrors] = useState<Array<{ line: number; gtin: string; message: string }>>([]);
+  const [csvErrorDialogOpen, setCsvErrorDialogOpen] = useState(false);
+  const [lastImportStats, setLastImportStats] = useState<{ success: number; failed: number } | null>(null);
 
   useEffect(() => {
     loadStores();
@@ -302,72 +305,163 @@ const StoreOwnerDashboard = () => {
     }
 
     setIsImporting(true);
+    setCsvErrors([]);
+    setLastImportStats(null);
+
     const lines = csvData.trim().split("\n");
     const { data: { user } } = await supabase.auth.getUser();
-    const priceUpdates: Array<{ store_id: string; product_gtin: string; price: number; in_stock: boolean; verified: boolean; source: string; verified_by: string | undefined; updated_by: string | undefined }> = [];
-    const errors: string[] = [];
+    const parsedRows: Array<{ line: number; gtin: string; price: number; inStock: boolean }> = [];
+    const errors: Array<{ line: number; gtin: string; message: string }> = [];
 
     // Detect if first line is a header row
     const firstLine = lines[0].trim().toLowerCase();
     const startIndex = firstLine.includes('product_gtin') || firstLine.includes('gtin') ? 1 : 0;
 
     lines.slice(startIndex).forEach((line, index) => {
-      const parts = line.split(",").map((s) => s.trim());
+      const lineNum = index + startIndex + 1;
+      const trimmedLine = line.trim();
+
+      // Skip empty lines
+      if (!trimmedLine) return;
+
+      const parts = trimmedLine.split(",").map((s) => s.trim());
       const [gtin, price, stockStr] = parts;
-      if (!gtin || !price) {
-        errors.push(`Line ${index + startIndex + 1}: Invalid format (expected product_gtin,price,in_stock)`);
+
+      if (!gtin) {
+        errors.push({ line: lineNum, gtin: '-', message: 'Product GTIN is missing' });
         return;
       }
+
+      if (!/^\d+$/.test(gtin)) {
+        errors.push({ line: lineNum, gtin, message: 'Invalid GTIN — must contain only numbers' });
+        return;
+      }
+
+      if (!price) {
+        errors.push({ line: lineNum, gtin, message: 'Price is missing' });
+        return;
+      }
+
       const parsedPrice = parseFloat(price);
-      
-      // Validate using schema
-      const result = priceSchema.safeParse({ gtin, price: parsedPrice });
-      if (!result.success) {
-        errors.push(`Line ${index + startIndex + 1}: ${result.error.issues[0].message}`);
+
+      if (isNaN(parsedPrice)) {
+        errors.push({ line: lineNum, gtin, message: `"${price}" is not a valid price` });
         return;
       }
 
-      // Parse in_stock: default to true if not provided
-      const inStockValue = stockStr !== undefined ? stockStr.toLowerCase() !== 'false' : true;
-      
-      priceUpdates.push({
-        store_id: selectedStoreId,
-        product_gtin: result.data.gtin,
-        price: result.data.price,
-        in_stock: inStockValue,
-        verified: true,
-        source: 'store_owner',
-        verified_by: user?.id,
-        updated_by: user?.id,
-      });
+      if (parsedPrice <= 0) {
+        errors.push({ line: lineNum, gtin, message: 'Price must be greater than zero' });
+        return;
+      }
+
+      if (parsedPrice > 999999.99) {
+        errors.push({ line: lineNum, gtin, message: 'Price is too large (max 999,999.99)' });
+        return;
+      }
+
+      // Validate in_stock value if provided
+      if (stockStr !== undefined && stockStr !== '') {
+        const lower = stockStr.toLowerCase();
+        if (!['true', 'false', '1', '0', 'yes', 'no'].includes(lower)) {
+          errors.push({ line: lineNum, gtin, message: `"${stockStr}" is not a valid stock value — use true/false` });
+          return;
+        }
+      }
+
+      const inStockValue = stockStr !== undefined && stockStr !== '' ? !['false', '0', 'no'].includes(stockStr.toLowerCase()) : true;
+
+      parsedRows.push({ line: lineNum, gtin, price: parsedPrice, inStock: inStockValue });
     });
 
-    if (errors.length > 0) {
-      toast({ 
-        title: "Import Errors", 
-        description: errors.join(", "), 
-        variant: "destructive" 
+    // Validate GTINs exist in products table
+    if (parsedRows.length > 0) {
+      const uniqueGtins = [...new Set(parsedRows.map(r => r.gtin))];
+      const { data: existingProducts } = await supabase
+        .from("products")
+        .select("gtin")
+        .in("gtin", uniqueGtins);
+
+      const validGtins = new Set((existingProducts || []).map((p: any) => p.gtin));
+      const invalidRows: typeof parsedRows = [];
+      const validRows: typeof parsedRows = [];
+
+      parsedRows.forEach(row => {
+        if (validGtins.has(row.gtin)) {
+          validRows.push(row);
+        } else {
+          invalidRows.push(row);
+          errors.push({ line: row.line, gtin: row.gtin, message: 'Product not found in catalog — this GTIN does not exist in the products database' });
+        }
       });
-      setIsImporting(false);
-      return;
-    }
 
-    const { error } = await supabase.from("store_prices").upsert(priceUpdates, {
-      onConflict: 'store_id,product_gtin'
-    });
+      // Build upsert array from valid rows only
+      // Deduplicate by product_gtin — keep the last occurrence
+      const deduped = new Map<string, { store_id: string; product_gtin: string; price: number; in_stock: boolean; verified: boolean; source: string; verified_by: string | undefined; updated_by: string | undefined }>();
+      validRows.forEach((row) => {
+        deduped.set(row.gtin, {
+          store_id: selectedStoreId,
+          product_gtin: row.gtin,
+          price: row.price,
+          in_stock: row.inStock,
+          verified: true,
+          source: 'store_owner',
+          verified_by: user?.id,
+          updated_by: user?.id,
+        });
+      });
+      const uniqueUpdates = Array.from(deduped.values());
 
-    setIsImporting(false);
+      // Store errors for dialog
+      setCsvErrors(errors);
 
-    if (error) {
-      toast({ title: "Error", description: error.message, variant: "destructive" });
+      if (uniqueUpdates.length > 0) {
+        const { error } = await supabase.from("store_prices").upsert(uniqueUpdates, {
+          onConflict: 'store_id,product_gtin',
+          ignoreDuplicates: false,
+        });
+
+        setIsImporting(false);
+
+        if (error) {
+          toast({ title: "Database Error", description: error.message, variant: "destructive" });
+          return;
+        }
+
+        setLastImportStats({ success: uniqueUpdates.length, failed: errors.length });
+
+        if (errors.length > 0) {
+          setCsvErrorDialogOpen(true);
+          toast({
+            title: "Partial Import",
+            description: `${uniqueUpdates.length} prices imported/updated. ${errors.length} row(s) had errors.`,
+          });
+        } else {
+          toast({
+            title: "Success",
+            description: `${uniqueUpdates.length} prices imported/updated successfully`,
+          });
+          setCsvData("");
+          setSelectedFile(null);
+        }
+        loadStorePrices(selectedStoreId);
+      } else {
+        setIsImporting(false);
+        setLastImportStats({ success: 0, failed: errors.length });
+        if (errors.length > 0) {
+          setCsvErrorDialogOpen(true);
+        } else {
+          toast({ title: "No Data", description: "No valid rows found in the CSV", variant: "destructive" });
+        }
+      }
     } else {
-      toast({ 
-        title: "Success", 
-        description: `${priceUpdates.length} prices imported successfully` 
-      });
-      setCsvData("");
-      setSelectedFile(null);
-      loadStorePrices(selectedStoreId);
+      setIsImporting(false);
+      setCsvErrors(errors);
+      setLastImportStats({ success: 0, failed: errors.length });
+      if (errors.length > 0) {
+        setCsvErrorDialogOpen(true);
+      } else {
+        toast({ title: "No Data", description: "No valid rows found in the CSV", variant: "destructive" });
+      }
     }
   };
 
@@ -465,6 +559,10 @@ const StoreOwnerDashboard = () => {
         loadUserProfile={loadUserProfile}
         verifiedStatus={verifiedStatus}
         sourceStatus={sourceStatus}
+        csvErrors={csvErrors}
+        csvErrorDialogOpen={csvErrorDialogOpen}
+        setCsvErrorDialogOpen={setCsvErrorDialogOpen}
+        lastImportStats={lastImportStats}
       />
     </SmartShopperLayout>
   );
@@ -504,6 +602,10 @@ const StoreOwnerContent = ({
   loadUserProfile,
   verifiedStatus,
   sourceStatus,
+  csvErrors,
+  csvErrorDialogOpen,
+  setCsvErrorDialogOpen,
+  lastImportStats,
 }: any) => {
   return (
     <div className="flex flex-1 flex-col w-full">
@@ -622,14 +724,80 @@ const StoreOwnerContent = ({
                 className="font-mono text-sm"
               />
 
-              <Button
-                onClick={importBulkPrices}
-                disabled={isImporting || !csvData.trim()}
-                className="w-full"
-              >
-                <Upload className="h-4 w-4 mr-2" />
-                {isImporting ? "Importing..." : "Import Prices"}
-              </Button>
+              <div className="flex gap-2">
+                <Button
+                  onClick={importBulkPrices}
+                  disabled={isImporting || !csvData.trim()}
+                  className="flex-1"
+                >
+                  <Upload className="h-4 w-4 mr-2" />
+                  {isImporting ? "Importing..." : "Import Prices"}
+                </Button>
+
+                {csvErrors.length > 0 && (
+                  <Button
+                    variant="outline"
+                    onClick={() => setCsvErrorDialogOpen(true)}
+                    className="flex items-center gap-2 border-destructive text-destructive hover:bg-destructive/10"
+                  >
+                    <AlertTriangle className="h-4 w-4" />
+                    See Errors ({csvErrors.length})
+                  </Button>
+                )}
+              </div>
+
+              {lastImportStats && (
+                <div className="flex items-center gap-4 p-3 rounded-lg bg-muted/50 text-sm">
+                  {lastImportStats.success > 0 && (
+                    <span className="flex items-center gap-1 text-green-600">
+                      <CheckCircle2 className="h-4 w-4" />
+                      {lastImportStats.success} imported
+                    </span>
+                  )}
+                  {lastImportStats.failed > 0 && (
+                    <span className="flex items-center gap-1 text-destructive">
+                      <XCircle className="h-4 w-4" />
+                      {lastImportStats.failed} failed
+                    </span>
+                  )}
+                </div>
+              )}
+
+              <Dialog open={csvErrorDialogOpen} onOpenChange={setCsvErrorDialogOpen}>
+                <DialogContent className="max-w-lg max-h-[80vh]">
+                  <DialogHeader>
+                    <DialogTitle className="flex items-center gap-2 text-destructive">
+                      <AlertTriangle className="h-5 w-5" />
+                      CSV Import Errors ({csvErrors.length})
+                    </DialogTitle>
+                  </DialogHeader>
+                  <div className="space-y-1 max-h-[60vh] overflow-y-auto">
+                    <p className="text-sm text-muted-foreground mb-3">
+                      The following rows could not be imported. Please fix them and try again.
+                    </p>
+                    {csvErrors.map((err: any, i: number) => (
+                      <div
+                        key={i}
+                        className="flex items-start gap-3 p-3 rounded-lg bg-destructive/5 border border-destructive/20"
+                      >
+                        <XCircle className="h-4 w-4 text-destructive mt-0.5 flex-shrink-0" />
+                        <div className="text-sm">
+                          <span className="font-medium">Row {err.line}</span>
+                          {err.gtin !== '-' && (
+                            <span className="text-muted-foreground"> · GTIN: {err.gtin}</span>
+                          )}
+                          <p className="text-destructive mt-0.5">{err.message}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div className="flex justify-end pt-2">
+                    <Button variant="outline" onClick={() => setCsvErrorDialogOpen(false)}>
+                      Close
+                    </Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </CardContent>
           </Card>
         )}
