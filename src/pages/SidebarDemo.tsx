@@ -112,7 +112,7 @@ const Logo = () => {
         animate={{ opacity: 1 }}
         className="font-medium text-foreground whitespace-pre"
       >
-        Savio
+        Savio-shop
       </motion.span>
     </Link>
   );
