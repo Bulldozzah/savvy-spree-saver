@@ -23,6 +23,7 @@ import FallingPatternDemo from "./pages/FallingPatternDemo";
 import FluidDropdownDemo from "./pages/FluidDropdownDemo";
 import BarcodePriceScanner from "./pages/BarcodePriceScanner";
 import BrowseStore from "./pages/BrowseStore";
+import Features from "./pages/Features";
 import NotFound from "./pages/NotFound";
 
 const AppContent = () => {
@@ -166,6 +167,7 @@ const AppContent = () => {
               }
             />
             <Route path="/about" element={<AboutUs />} />
+            <Route path="/features" element={<Features />} />
             <Route path="/contact" element={<ContactUs />} />
             <Route path="/stores" element={<StoreLocator />} />
             <Route path="/shopper-landing" element={<ShopperLanding />} />

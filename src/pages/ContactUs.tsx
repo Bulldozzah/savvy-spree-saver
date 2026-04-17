@@ -3,7 +3,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Link } from "react-router-dom";
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, MessageSquare } from "lucide-react";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 
@@ -30,11 +30,14 @@ const ContactUs = () => {
       <nav className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link to="/">
-            <h1 className="text-2xl font-bold">PriceCompare</h1>
+            <h1 className="text-2xl font-bold">Savio-shop</h1>
           </Link>
           <div className="flex gap-4 items-center">
             <Link to="/">
               <Button variant="ghost">Home</Button>
+            </Link>
+            <Link to="/features">
+              <Button variant="ghost">Features</Button>
             </Link>
             <Link to="/about">
               <Button variant="ghost">About Us</Button>
@@ -58,24 +61,7 @@ const ContactUs = () => {
             Have questions? We'd love to hear from you.
           </p>
 
-          <div className="grid md:grid-cols-3 gap-6 mb-12">
-            <Card>
-              <CardHeader>
-                <div className="flex justify-center mb-4">
-                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Mail className="h-6 w-6 text-primary" />
-                  </div>
-                </div>
-                <CardTitle className="text-center">Email</CardTitle>
-                <CardDescription className="text-center">
-                  Send us an email anytime
-                </CardDescription>
-              </CardHeader>
-              <CardContent className="text-center">
-                <p className="text-sm text-muted-foreground">support@pricecompare.com</p>
-              </CardContent>
-            </Card>
-
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6 mb-12">
             <Card>
               <CardHeader>
                 <div className="flex justify-center mb-4">
@@ -89,7 +75,41 @@ const ContactUs = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center">
-                <p className="text-sm text-muted-foreground">+1 (555) 123-4567</p>
+                <p className="text-sm text-muted-foreground">+260 973 433 321</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex justify-center mb-4">
+                  <div className="h-12 w-12 rounded-full bg-green-500/10 flex items-center justify-center">
+                    <MessageSquare className="h-6 w-6 text-green-600" />
+                  </div>
+                </div>
+                <CardTitle className="text-center">WhatsApp</CardTitle>
+                <CardDescription className="text-center">
+                  Message us on WhatsApp
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-sm text-muted-foreground">+260 973 433 321</p>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <div className="flex justify-center mb-4">
+                  <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Mail className="h-6 w-6 text-primary" />
+                  </div>
+                </div>
+                <CardTitle className="text-center">Email</CardTitle>
+                <CardDescription className="text-center">
+                  Send us an email anytime
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="text-center">
+                <p className="text-sm text-muted-foreground">macxiontech@gmail.com</p>
               </CardContent>
             </Card>
 
@@ -100,13 +120,13 @@ const ContactUs = () => {
                     <MapPin className="h-6 w-6 text-primary" />
                   </div>
                 </div>
-                <CardTitle className="text-center">Office</CardTitle>
+                <CardTitle className="text-center">Address</CardTitle>
                 <CardDescription className="text-center">
                   Visit us at our location
                 </CardDescription>
               </CardHeader>
               <CardContent className="text-center">
-                <p className="text-sm text-muted-foreground">123 Commerce St, City, State</p>
+                <p className="text-sm text-muted-foreground">Lusaka, Zambia</p>
               </CardContent>
             </Card>
           </div>

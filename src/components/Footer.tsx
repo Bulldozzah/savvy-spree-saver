@@ -1,4 +1,4 @@
-import { Mail, Phone, MapPin } from "lucide-react";
+import { Mail, Phone, MapPin, MessageSquare } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Footer = () => {
@@ -22,24 +22,31 @@ const Footer = () => {
             <h3 className="font-semibold mb-4 text-white">Contact</h3>
             <div className="space-y-3">
               <div className="flex items-start gap-2">
-                <Mail className="h-5 w-5 text-primary mt-0.5" />
-                <div>
-                  <p className="text-sm font-medium text-slate-300">Email</p>
-                  <p className="text-sm text-slate-400">support@pricecompare.com</p>
-                </div>
-              </div>
-              <div className="flex items-start gap-2">
                 <Phone className="h-5 w-5 text-primary mt-0.5" />
                 <div>
                   <p className="text-sm font-medium text-slate-300">Phone</p>
-                  <p className="text-sm text-slate-400">+1 (555) 123-4567</p>
+                  <p className="text-sm text-slate-400">+260 973 433 321</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <MessageSquare className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-slate-300">WhatsApp</p>
+                  <p className="text-sm text-slate-400">+260 973 433 321</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <Mail className="h-5 w-5 text-primary mt-0.5" />
+                <div>
+                  <p className="text-sm font-medium text-slate-300">Email</p>
+                  <p className="text-sm text-slate-400">macxiontech@gmail.com</p>
                 </div>
               </div>
               <div className="flex items-start gap-2">
                 <MapPin className="h-5 w-5 text-primary mt-0.5" />
                 <div>
-                  <p className="text-sm font-medium text-slate-300">Office</p>
-                  <p className="text-sm text-slate-400">123 Shopping Lane<br />San Francisco, CA 94102</p>
+                  <p className="text-sm font-medium text-slate-300">Address</p>
+                  <p className="text-sm text-slate-400">Lusaka, Zambia</p>
                 </div>
               </div>
             </div>
@@ -51,6 +58,16 @@ const Footer = () => {
               <li>
                 <Link to="/" className="text-sm text-slate-400 hover:text-white transition-colors">
                   Home
+                </Link>
+              </li>
+              <li>
+                <Link to="/about" className="text-sm text-slate-400 hover:text-white transition-colors">
+                  About
+                </Link>
+              </li>
+              <li>
+                <Link to="/features" className="text-sm text-slate-400 hover:text-white transition-colors">
+                  Features
                 </Link>
               </li>
               <li>
@@ -73,7 +90,7 @@ const Footer = () => {
 
         <div className="border-t border-slate-800 mt-8 pt-8 text-center">
           <p className="text-sm text-slate-400">
-            © {new Date().getFullYear()} Wise-Up Shop. All rights reserved.
+            © {new Date().getFullYear()} Savio-shop. All rights reserved.
           </p>
         </div>
       </div>

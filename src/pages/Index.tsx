@@ -56,10 +56,10 @@ const Index = () => {
               <Link to="/" className="text-foreground hover:text-primary transition-colors">
                 Home
               </Link>
-              <Link to="/auth" className="text-foreground hover:text-primary transition-colors">
+              <Link to="/features" className="text-foreground hover:text-primary transition-colors">
                 Features
               </Link>
-              <Link to="/auth" className="text-foreground hover:text-primary transition-colors">
+              <Link to="/about" className="text-foreground hover:text-primary transition-colors">
                 About
               </Link>
               <Link to="/auth">
@@ -89,14 +89,14 @@ const Index = () => {
                 Home
               </Link>
               <Link
-                to="/auth"
+                to="/features"
                 className="text-foreground hover:text-primary transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >
                 Features
               </Link>
               <Link
-                to="/auth"
+                to="/about"
                 className="text-foreground hover:text-primary transition-colors py-2"
                 onClick={() => setMobileMenuOpen(false)}
               >

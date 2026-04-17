@@ -35,11 +35,14 @@ const AboutUs = () => {
       <nav className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link to="/">
-            <h1 className="text-2xl font-bold">PriceCompare</h1>
+            <h1 className="text-2xl font-bold">Savio-shop</h1>
           </Link>
           <div className="flex gap-4 items-center">
             <Link to="/">
               <Button variant="ghost">Home</Button>
+            </Link>
+            <Link to="/features">
+              <Button variant="ghost">Features</Button>
             </Link>
             <Link to="/about">
               <Button variant="ghost">About Us</Button>
@@ -57,7 +60,7 @@ const AboutUs = () => {
       <main className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-5xl font-extrabold text-center mb-6 text-foreground">
-            About PriceCompare
+            About Savio-shop
           </h1>
           <p className="text-xl text-center text-muted-foreground mb-12">
             Empowering shoppers to save money through community-driven price comparison
@@ -65,14 +68,14 @@ const AboutUs = () => {
 
           <div className="prose prose-lg max-w-none mb-16">
             <p className="text-muted-foreground">
-              PriceCompare is a revolutionary platform that brings together shoppers and stores in a transparent marketplace. 
+              Savio-shop is a revolutionary platform that brings together shoppers and stores in a transparent marketplace. 
               Our mission is to help you make informed purchasing decisions by providing real-time price comparisons across 
               multiple stores in your area.
             </p>
             <p className="text-muted-foreground mt-4">
               Built on the principle of community collaboration, our platform allows users to scan and share product prices, 
               creating a comprehensive database that benefits everyone. Whether you're planning your weekly grocery run or 
-              looking for the best deal on a specific item, PriceCompare puts the power of information in your hands.
+              looking for the best deal on a specific item, Savio-shop puts the power of information in your hands.
             </p>
           </div>
 
