@@ -6,7 +6,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogTrigger } from "@/components/ui/dialog";
 import { DollarSign, Package, Upload, Store, User, Phone, MessageSquare, LogOut, Download, FileSpreadsheet, AlertTriangle, CheckCircle2, XCircle } from "lucide-react";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { debounce } from "lodash";
@@ -376,12 +376,31 @@ const StoreOwnerDashboard = () => {
     // Validate GTINs exist in products table
     if (parsedRows.length > 0) {
       const uniqueGtins = [...new Set(parsedRows.map(r => r.gtin))];
-      const { data: existingProducts } = await supabase
-        .from("products")
-        .select("gtin")
-        .in("gtin", uniqueGtins);
 
-      const validGtins = new Set((existingProducts || []).map((p: any) => p.gtin));
+      // Chunk the .in() query to avoid URL length limits (HTTP 400 on large CSVs).
+      // Supabase/PostgREST GET URL length is capped (~2-8KB depending on infra).
+      const GTIN_QUERY_CHUNK = 200;
+      const validGtins = new Set<string>();
+      let gtinFetchError: any = null;
+      for (let i = 0; i < uniqueGtins.length; i += GTIN_QUERY_CHUNK) {
+        const chunk = uniqueGtins.slice(i, i + GTIN_QUERY_CHUNK);
+        const { data: existingProducts, error: fetchError } = await supabase
+          .from("products")
+          .select("gtin")
+          .in("gtin", chunk);
+        if (fetchError) {
+          gtinFetchError = fetchError;
+          break;
+        }
+        (existingProducts || []).forEach((p: any) => validGtins.add(p.gtin));
+      }
+
+      if (gtinFetchError) {
+        setIsImporting(false);
+        toast({ title: "Validation Error", description: `Failed to validate GTINs: ${gtinFetchError.message}`, variant: "destructive" });
+        return;
+      }
+
       const invalidRows: typeof parsedRows = [];
       const validRows: typeof parsedRows = [];
 
@@ -415,15 +434,31 @@ const StoreOwnerDashboard = () => {
       setCsvErrors(errors);
 
       if (uniqueUpdates.length > 0) {
-        const { error } = await supabase.from("store_prices").upsert(uniqueUpdates, {
-          onConflict: 'store_id,product_gtin',
-          ignoreDuplicates: false,
-        });
+        // Chunk the upsert to avoid payload/timeout issues on very large CSVs
+        const UPSERT_CHUNK = 500;
+        let upsertError: any = null;
+        let importedCount = 0;
+        for (let i = 0; i < uniqueUpdates.length; i += UPSERT_CHUNK) {
+          const batch = uniqueUpdates.slice(i, i + UPSERT_CHUNK);
+          const { error } = await supabase.from("store_prices").upsert(batch, {
+            onConflict: 'store_id,product_gtin',
+            ignoreDuplicates: false,
+          });
+          if (error) {
+            upsertError = error;
+            break;
+          }
+          importedCount += batch.length;
+        }
 
         setIsImporting(false);
 
-        if (error) {
-          toast({ title: "Database Error", description: error.message, variant: "destructive" });
+        if (upsertError) {
+          toast({
+            title: "Database Error",
+            description: `${upsertError.message}${importedCount > 0 ? ` (${importedCount} rows imported before failure)` : ''}`,
+            variant: "destructive",
+          });
           return;
         }
 
@@ -770,11 +805,11 @@ const StoreOwnerContent = ({
                       <AlertTriangle className="h-5 w-5" />
                       CSV Import Errors ({csvErrors.length})
                     </DialogTitle>
+                    <DialogDescription>
+                      The following rows could not be imported. Please fix them and try again.
+                    </DialogDescription>
                   </DialogHeader>
                   <div className="space-y-1 max-h-[60vh] overflow-y-auto">
-                    <p className="text-sm text-muted-foreground mb-3">
-                      The following rows could not be imported. Please fix them and try again.
-                    </p>
                     {csvErrors.map((err: any, i: number) => (
                       <div
                         key={i}

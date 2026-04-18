@@ -9,7 +9,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger, Dialog
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog";
 import { HoverButton } from "@/components/ui/hover-button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ShoppingCart, TrendingDown, User, ListChecks, ChevronDown, Store, MessageSquare, Search, LogOut, Share, DollarSign, Eye, CheckCircle2, XCircle, Trash2, Link2, Plus, Minus } from "lucide-react";
+import { ShoppingCart, TrendingDown, User, ListChecks, ChevronDown, Store, MessageSquare, Search, LogOut, Share, DollarSign, Eye, CheckCircle2, XCircle, Trash2, Link2, Plus, Minus, MapPin, Navigation } from "lucide-react";
 import { debounce } from "lodash";
 import { ProfileEditor } from "@/components/ProfileEditor";
 import { StoreSelector } from "@/components/StoreSelector";
@@ -57,6 +57,7 @@ const ShopperDashboard = () => {
   const [listItemsWithPrices, setListItemsWithPrices] = useState<any[]>([]);
   const [viewListDialogOpen, setViewListDialogOpen] = useState(false);
   const [viewingListId, setViewingListId] = useState<string>("");
+  const [isAutoChecking, setIsAutoChecking] = useState(false);
 
 
   useEffect(() => {
@@ -555,6 +556,114 @@ const ShopperDashboard = () => {
     setComparison(results);
   };
 
+  const autoCheckPrices = async () => {
+    if (!selectedListId || listItems.length === 0) {
+      toast({ title: "Error", description: "Select a shopping list with items first", variant: "destructive" });
+      return;
+    }
+
+    setIsAutoChecking(true);
+
+    try {
+      // Get user's current location
+      const position = await new Promise<GeolocationPosition>((resolve, reject) => {
+        if (!navigator.geolocation) {
+          reject(new Error("Geolocation is not supported by your browser"));
+          return;
+        }
+        navigator.geolocation.getCurrentPosition(resolve, reject, {
+          enableHighAccuracy: true,
+          timeout: 10000,
+          maximumAge: 300000,
+        });
+      });
+
+      const userLat = position.coords.latitude;
+      const userLng = position.coords.longitude;
+
+      // Fetch all stores with coordinates
+      const { data: allStores, error: storesError } = await supabase
+        .from("stores")
+        .select("id, location, latitude, longitude, store_hq(name)")
+        .not("latitude", "is", null)
+        .not("longitude", "is", null);
+
+      if (storesError || !allStores || allStores.length === 0) {
+        toast({ title: "No Stores", description: "No stores with location data found", variant: "destructive" });
+        setIsAutoChecking(false);
+        return;
+      }
+
+      // Calculate distance (Haversine) and pick closest 5
+      const toRad = (deg: number) => (deg * Math.PI) / 180;
+      const haversine = (lat1: number, lng1: number, lat2: number, lng2: number) => {
+        const R = 6371; // km
+        const dLat = toRad(lat2 - lat1);
+        const dLng = toRad(lng2 - lng1);
+        const a =
+          Math.sin(dLat / 2) * Math.sin(dLat / 2) +
+          Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) *
+          Math.sin(dLng / 2) * Math.sin(dLng / 2);
+        return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+      };
+
+      const storesWithDistance = allStores
+        .map((store: any) => ({
+          ...store,
+          distance: haversine(userLat, userLng, store.latitude, store.longitude),
+        }))
+        .sort((a: any, b: any) => a.distance - b.distance)
+        .slice(0, 5);
+
+      // Run price comparison for the closest stores
+      const gtins = listItems.map((item: any) => item.product_gtin);
+
+      const results = await Promise.all(
+        storesWithDistance.map(async (store: any) => {
+          const { data: prices } = await supabase
+            .from("store_prices")
+            .select("product_gtin, price, in_stock")
+            .eq("store_id", store.id)
+            .in("product_gtin", gtins);
+
+          const total = prices?.reduce((sum: number, p: any) => {
+            const item = listItems.find((i: any) => i.product_gtin === p.product_gtin);
+            const quantity = item?.quantity || 1;
+            return sum + Number(p.price) * quantity;
+          }, 0) || 0;
+
+          return {
+            store,
+            prices: prices || [],
+            total,
+            distance: store.distance,
+          };
+        })
+      );
+
+      // Auto-select these stores in the compare UI
+      setCompareStores(storesWithDistance.map((s: any) => s.id));
+      setComparison(results);
+
+      toast({
+        title: "Auto-Check Complete",
+        description: `Compared prices at ${results.length} closest store${results.length > 1 ? 's' : ''} to your location`,
+      });
+    } catch (err: any) {
+      if (err.code === 1) {
+        toast({ title: "Location Denied", description: "Please allow location access to use auto-check", variant: "destructive" });
+      } else if (err.code === 2) {
+        toast({ title: "Location Unavailable", description: "Could not determine your location", variant: "destructive" });
+      } else if (err.code === 3) {
+        toast({ title: "Location Timeout", description: "Getting your location timed out. Try again.", variant: "destructive" });
+      } else {
+        toast({ title: "Error", description: err.message || "Failed to auto-check prices", variant: "destructive" });
+      }
+    } finally {
+      setIsAutoChecking(false);
+    }
+  };
+
   const handleSearchChange = (value: string) => {
     setSearchTerm(value);
     debouncedSearch(value);
@@ -671,6 +780,8 @@ const ShopperDashboard = () => {
         setStoreSearchTerm={setStoreSearchTerm}
         setCompareStores={setCompareStores}
         comparePrices={comparePrices}
+        autoCheckPrices={autoCheckPrices}
+        isAutoChecking={isAutoChecking}
         searchTerm={searchTerm}
         handleSearchChange={handleSearchChange}
         products={products}
@@ -731,6 +842,8 @@ const DashboardContent = ({
   setStoreSearchTerm,
   setCompareStores,
   comparePrices,
+  autoCheckPrices,
+  isAutoChecking,
   searchTerm,
   handleSearchChange,
   products,
@@ -786,6 +899,8 @@ const DashboardContent = ({
   setStoreSearchTerm: (term: string) => void;
   setCompareStores: (stores: string[]) => void;
   comparePrices: () => Promise<void>;
+  autoCheckPrices: () => Promise<void>;
+  isAutoChecking: boolean;
   searchTerm: string;
   handleSearchChange: (value: string) => void;
   products: any[];
@@ -1243,63 +1358,63 @@ const DashboardContent = ({
                         <>
                           <div className="space-y-2 max-h-[500px] overflow-y-auto">
                             {listItemsWithPrices.map((item: any) => (
-                              <div key={item.id} className="group relative rounded-2xl p-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium tracking-wide transform hover:scale-[1.02] hover:from-emerald-400 hover:to-teal-400 transition-all duration-200 shadow-lg hover:shadow-xl">
-                                <div className="pointer-events-none absolute inset-0 rounded-2xl bg-black/5 group-hover:bg-black/0 transition-all duration-200" />
+                              <div key={item.id} className="group relative border rounded-xl p-4 bg-primary/10 border-primary font-medium tracking-wide transform-gpu hover:shadow-[0_0_0_1px_rgba(0,0,0,.03),0_2px_4px_rgba(0,0,0,.05),0_12px_24px_rgba(0,0,0,.05)] dark:hover:shadow-[0_-20px_80px_-20px_#ffffff1f_inset] hover:-translate-y-1 transition-all duration-300">
+                                <div className="pointer-events-none absolute inset-0 rounded-xl transform-gpu transition-all duration-300 group-hover:bg-primary/[.02]" />
                                 <div className="flex justify-between items-start gap-3">
                                   <div className="flex-1 min-w-0">
                                     <div className="flex items-start gap-2">
                                       <div className="flex-1 min-w-0">
-                                        <p className="font-bold break-words text-white">{item.products?.description}</p>
-                                        <p className="text-xs text-white/70 truncate">GTIN: {item.product_gtin}</p>
+                                        <p className="font-bold break-words text-foreground">{item.products?.description}</p>
+                                        <p className="text-xs text-muted-foreground truncate">GTIN: {item.product_gtin}</p>
                                       </div>
                                       {item.in_stock ? (
-                                        <CheckCircle2 className="h-5 w-5 text-white flex-shrink-0" />
+                                        <CheckCircle2 className="h-5 w-5 text-green-600 flex-shrink-0" />
                                       ) : (
-                                        <XCircle className="h-5 w-5 text-red-200 flex-shrink-0" />
+                                        <XCircle className="h-5 w-5 text-destructive flex-shrink-0" />
                                       )}
                                     </div>
                                     
                                     <div className="mt-2 space-y-2">
                                       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 text-sm">
                                         <div className="flex items-center gap-2">
-                                          <span className="text-white/80">Qty:</span>
+                                          <span className="text-muted-foreground">Qty:</span>
                                           <div className="flex items-center gap-1">
                                             <Button
                                               type="button"
                                               size="sm"
                                               variant="outline"
-                                              className="h-6 w-6 p-0 flex items-center justify-center bg-white/20 border-white/30 hover:bg-white/30"
+                                              className="h-6 w-6 p-0 flex items-center justify-center"
                                               onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
                                                 updateListItemQuantity(item.id, -1);
                                               }}
                                             >
-                                              <Minus className="h-3 w-3 text-white" />
+                                              <Minus className="h-3 w-3" />
                                             </Button>
-                                            <span className="w-8 text-center font-bold text-white">{item.quantity}</span>
+                                            <span className="w-8 text-center font-bold text-foreground">{item.quantity}</span>
                                             <Button
                                               type="button"
                                               size="sm"
                                               variant="outline"
-                                              className="h-6 w-6 p-0 flex items-center justify-center bg-white/20 border-white/30 hover:bg-white/30"
+                                              className="h-6 w-6 p-0 flex items-center justify-center"
                                               onClick={(e) => {
                                                 e.preventDefault();
                                                 e.stopPropagation();
                                                 updateListItemQuantity(item.id, 1);
                                               }}
                                             >
-                                              <Plus className="h-3 w-3 text-white" />
+                                              <Plus className="h-3 w-3" />
                                             </Button>
                                           </div>
                                         </div>
                                         {item.price && (
-                                          <span className={`text-xs sm:text-sm ${item.in_stock ? "font-semibold text-white" : "font-semibold text-red-200 line-through"}`}>
+                                          <span className={`text-xs sm:text-sm ${item.in_stock ? "font-semibold text-foreground" : "font-semibold text-destructive line-through"}`}>
                                             {currencySymbol}{Number(item.price).toFixed(2)} × {item.quantity} = {currencySymbol}{(Number(item.price) * item.quantity).toFixed(2)}
                                           </span>
                                         )}
                                       </div>
-                                      <div className={`text-xs font-bold ${item.in_stock ? "text-white" : "text-red-200"}`}>
+                                      <div className={`text-xs font-bold ${item.in_stock ? "text-green-600" : "text-destructive"}`}>
                                         {item.in_stock ? "✓ In Stock" : "✗ Out of Stock"}
                                       </div>
                                     </div>
@@ -1347,41 +1462,41 @@ const DashboardContent = ({
                       ) : (
                         <div className="space-y-2 max-h-[500px] overflow-y-auto">
                           {listItems.map((item: any) => (
-                            <div key={item.id} className="group relative rounded-2xl p-4 bg-gradient-to-r from-emerald-500 to-teal-500 text-white font-medium tracking-wide transform hover:scale-[1.02] hover:from-emerald-400 hover:to-teal-400 transition-all duration-200 shadow-lg hover:shadow-xl">
-                              <div className="pointer-events-none absolute inset-0 rounded-2xl bg-black/5 group-hover:bg-black/0 transition-all duration-200" />
+                            <div key={item.id} className="group relative border rounded-xl p-4 bg-primary/10 border-primary font-medium tracking-wide transform-gpu hover:shadow-[0_0_0_1px_rgba(0,0,0,.03),0_2px_4px_rgba(0,0,0,.05),0_12px_24px_rgba(0,0,0,.05)] dark:hover:shadow-[0_-20px_80px_-20px_#ffffff1f_inset] hover:-translate-y-1 transition-all duration-300">
+                              <div className="pointer-events-none absolute inset-0 rounded-xl transform-gpu transition-all duration-300 group-hover:bg-primary/[.02]" />
                               <div className="flex justify-between items-start gap-3">
                                 <div className="flex-1 min-w-0">
-                                  <p className="font-bold truncate text-white">{item.products?.description}</p>
-                                  <p className="text-xs text-white/70 mt-1">GTIN: {item.product_gtin}</p>
+                                  <p className="font-bold truncate text-foreground">{item.products?.description}</p>
+                                  <p className="text-xs text-muted-foreground mt-1">GTIN: {item.product_gtin}</p>
                                   <div className="flex items-center gap-2 mt-2">
-                                    <span className="text-sm text-white/80">Qty:</span>
+                                    <span className="text-sm text-muted-foreground">Qty:</span>
                                     <div className="flex items-center gap-1">
                                       <Button
                                         type="button"
                                         size="sm"
                                         variant="outline"
-                                        className="h-6 w-6 p-0 flex items-center justify-center bg-white/20 border-white/30 hover:bg-white/30"
+                                        className="h-6 w-6 p-0 flex items-center justify-center"
                                         onClick={(e) => {
                                           e.preventDefault();
                                           e.stopPropagation();
                                           updateListItemQuantity(item.id, -1);
                                         }}
                                       >
-                                        <Minus className="h-3 w-3 text-white" />
+                                        <Minus className="h-3 w-3" />
                                       </Button>
-                                      <span className="w-8 text-center font-bold text-white">{item.quantity}</span>
+                                      <span className="w-8 text-center font-bold text-foreground">{item.quantity}</span>
                                       <Button
                                         type="button"
                                         size="sm"
                                         variant="outline"
-                                        className="h-6 w-6 p-0 flex items-center justify-center bg-white/20 border-white/30 hover:bg-white/30"
+                                        className="h-6 w-6 p-0 flex items-center justify-center"
                                         onClick={(e) => {
                                           e.preventDefault();
                                           e.stopPropagation();
                                           updateListItemQuantity(item.id, 1);
                                         }}
                                       >
-                                        <Plus className="h-3 w-3 text-white" />
+                                        <Plus className="h-3 w-3" />
                                       </Button>
                                     </div>
                                   </div>
@@ -1526,9 +1641,24 @@ const DashboardContent = ({
                   })}
                 </div>
 
-                <Button onClick={comparePrices} className="w-full" disabled={!selectedListId || listItems.length === 0}>
-                  Check Price
-                </Button>
+                <div className="flex gap-2">
+                  <Button onClick={comparePrices} className="flex-1" disabled={!selectedListId || listItems.length === 0}>
+                    Check Price
+                  </Button>
+                  <Button
+                    onClick={autoCheckPrices}
+                    variant="outline"
+                    className="flex items-center gap-2 border-primary text-primary hover:bg-primary/10"
+                    disabled={!selectedListId || listItems.length === 0 || isAutoChecking}
+                  >
+                    <Navigation className="h-4 w-4" />
+                    {isAutoChecking ? "Locating..." : "Auto-Check"}
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  <Navigation className="h-3 w-3 inline mr-1" />
+                  Auto-Check uses your location to find and compare the 5 closest stores automatically.
+                </p>
 
                 {comparison && (
                   <div className="space-y-4 mt-4">
@@ -1558,9 +1688,19 @@ const DashboardContent = ({
                     {comparison.map((result: any, idx: number) => (
                       <Card key={idx} className={idx === 0 && comparison.length > 1 && result.total < comparison[1].total ? "border-green-500" : ""}>
                         <CardContent className="p-4">
-                          <p className="font-semibold">
-                            {result.store.store_hq?.name} - {result.store.location}
-                          </p>
+                          <div className="flex items-start justify-between">
+                            <p className="font-semibold">
+                              {result.store.store_hq?.name} - {result.store.location}
+                            </p>
+                            {result.distance != null && (
+                              <span className="text-xs text-muted-foreground flex items-center gap-1 ml-2 shrink-0">
+                                <MapPin className="h-3 w-3" />
+                                {result.distance < 1
+                                  ? `${Math.round(result.distance * 1000)}m`
+                                  : `${result.distance.toFixed(1)}km`}
+                              </span>
+                            )}
+                          </div>
                           <p className="text-2xl font-bold text-primary mt-2">
                             {currencySymbol}{result.total.toFixed(2)}
                           </p>

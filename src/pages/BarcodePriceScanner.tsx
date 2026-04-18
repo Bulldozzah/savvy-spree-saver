@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -11,6 +11,7 @@ import { StoreSelector } from "@/components/StoreSelector";
 import { SmartShopperLayout } from "@/components/SmartShopperSidebar";
 import { Camera, CheckCircle2, Package, Store, DollarSign, Search } from "lucide-react";
 import { countries } from "@/data/countries";
+import { debounce } from "lodash";
 
 const BarcodePriceScanner = () => {
   const { toast } = useToast();
@@ -24,6 +25,8 @@ const BarcodePriceScanner = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [currencySymbol, setCurrencySymbol] = useState("$");
   const [productNotFound, setProductNotFound] = useState(false);
+  const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [isSearching, setIsSearching] = useState(false);
 
   useEffect(() => {
     loadCurrency();
@@ -128,6 +131,44 @@ const BarcodePriceScanner = () => {
   const handleManualLookup = () => {
     if (manualGtin.trim()) {
       lookupProduct(manualGtin.trim());
+      setSearchResults([]);
+    }
+  };
+
+  const searchProducts = async (term: string) => {
+    if (!term || term.length < 2) {
+      setSearchResults([]);
+      return;
+    }
+    setIsSearching(true);
+    const { data } = await supabase
+      .from("products")
+      .select("*")
+      .or(`gtin.ilike.%${term}%,description.ilike.%${term}%`)
+      .limit(8);
+    setSearchResults(data || []);
+    setIsSearching(false);
+  };
+
+  const debouncedSearch = useCallback(
+    debounce((term: string) => searchProducts(term), 300),
+    []
+  );
+
+  const handleSearchInputChange = (value: string) => {
+    setManualGtin(value);
+    setProductNotFound(false);
+    debouncedSearch(value);
+  };
+
+  const selectSearchResult = (prod: any) => {
+    setProduct(prod);
+    setScannedGtin(prod.gtin);
+    setManualGtin("");
+    setSearchResults([]);
+    setProductNotFound(false);
+    if (selectedStore) {
+      loadExistingPrice(prod.gtin, selectedStore.id);
     }
   };
 
@@ -212,16 +253,45 @@ const BarcodePriceScanner = () => {
               </div>
             </div>
 
-            <div className="flex gap-2">
-              <Input
-                placeholder="Enter GTIN / Barcode"
-                value={manualGtin}
-                onChange={(e) => setManualGtin(e.target.value)}
-                onKeyDown={(e) => e.key === "Enter" && handleManualLookup()}
-              />
-              <Button onClick={handleManualLookup} size="icon" variant="outline">
-                <Search className="h-4 w-4" />
-              </Button>
+            <div className="relative">
+              <div className="flex gap-2">
+                <Input
+                  placeholder="Search by product name, description or barcode..."
+                  value={manualGtin}
+                  onChange={(e) => handleSearchInputChange(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && handleManualLookup()}
+                />
+                <Button onClick={handleManualLookup} size="icon" variant="outline">
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {isSearching && manualGtin.length >= 2 && (
+                <div className="absolute z-10 w-full mt-1 bg-card border rounded-lg shadow-lg p-3">
+                  <p className="text-sm text-muted-foreground">Searching...</p>
+                </div>
+              )}
+
+              {!isSearching && searchResults.length > 0 && (
+                <div className="absolute z-10 w-full mt-1 bg-card border rounded-lg shadow-lg max-h-60 overflow-y-auto">
+                  {searchResults.map((prod) => (
+                    <div
+                      key={prod.gtin}
+                      className="p-3 hover:bg-muted/50 cursor-pointer border-b last:border-b-0 transition-colors"
+                      onClick={() => selectSearchResult(prod)}
+                    >
+                      <p className="font-medium text-sm">{prod.description}</p>
+                      <p className="text-xs text-muted-foreground">GTIN: {prod.gtin}</p>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {!isSearching && manualGtin.length >= 2 && searchResults.length === 0 && !product && (
+                <div className="absolute z-10 w-full mt-1 bg-card border rounded-lg shadow-lg p-3">
+                  <p className="text-sm text-muted-foreground">No products found</p>
+                </div>
+              )}
             </div>
 
             {scannedGtin && (
