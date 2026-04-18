@@ -648,7 +648,7 @@ const StoreOwnerContent = ({
         {/* Store Selector - visible across all tabs */}
         <div className="space-y-4">
           <div>
-            <h1 className="text-3xl font-bold">Store Manager Dashboard</h1>
+            <h1 className="text-3xl font-bold">Manager Dashboard</h1>
             <p className="text-muted-foreground">Manage your store prices and products</p>
           </div>
 
