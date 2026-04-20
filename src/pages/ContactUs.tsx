@@ -30,7 +30,11 @@ const ContactUs = () => {
       <nav className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link to="/">
+<<<<<<< HEAD
             <h1 className="text-2xl font-bold">WiseShopper</h1>
+=======
+            <h1 className="text-2xl font-bold">Savio-shop</h1>
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
           </Link>
           <div className="flex gap-4 items-center">
             <Link to="/">

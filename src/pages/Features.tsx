@@ -100,7 +100,11 @@ const platformFeatures = [
     icon: ShoppingCart,
     title: "Mobile-Ready",
     description:
+<<<<<<< HEAD
       "Designed for use on the go. Access WiseShopper from your phone while you're in the store to make smarter decisions.",
+=======
+      "Designed for use on the go. Access Savio-shop from your phone while you're in the store to make smarter decisions.",
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
   },
 ];
 
@@ -110,7 +114,11 @@ const Features = () => {
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-border shadow-sm">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link to="/">
+<<<<<<< HEAD
             <h1 className="text-2xl font-bold">WiseShopper</h1>
+=======
+            <h1 className="text-2xl font-bold">Savio-shop</h1>
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
           </Link>
           <div className="flex gap-4 items-center">
             <Link to="/">
@@ -235,7 +243,11 @@ const Features = () => {
                 Built for Trust & Transparency
               </h2>
               <p className="text-muted-foreground mt-2 max-w-2xl mx-auto">
+<<<<<<< HEAD
                 Core principles that make WiseShopper reliable for everyone.
+=======
+                Core principles that make Savio-shop reliable for everyone.
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
               </p>
             </div>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8 max-w-5xl mx-auto">
@@ -269,7 +281,11 @@ const Features = () => {
               Ready to Start Saving?
             </h2>
             <p className="text-primary-foreground/80 mb-8 max-w-xl mx-auto">
+<<<<<<< HEAD
               Join WiseShopper today and take control of your grocery spending.
+=======
+              Join Savio-shop today and take control of your grocery spending.
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
               It's free for shoppers.
             </p>
             <Link to="/auth">

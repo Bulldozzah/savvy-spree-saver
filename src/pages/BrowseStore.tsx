@@ -11,11 +11,17 @@ import { Badge } from "@/components/ui/badge";
 import { VerifiedBadge } from "@/components/VerifiedBadge";
 import { SmartShopperLayout } from "@/components/SmartShopperSidebar";
 import { StoreSelector } from "@/components/StoreSelector";
+<<<<<<< HEAD
 import { Search, ShoppingCart, Store, Package, AlertTriangle, DollarSign, ArrowLeft, Camera, MapPin, Share2, MessageCircle } from "lucide-react";
 import { debounce } from "lodash";
 import { countries } from "@/data/countries";
 import { BarcodeScanner } from "@/components/BarcodeScanner";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+=======
+import { Search, ShoppingCart, Store, Package, AlertTriangle, DollarSign, ArrowLeft } from "lucide-react";
+import { debounce } from "lodash";
+import { countries } from "@/data/countries";
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
 import { cn } from "@/lib/utils";
 
 interface StoreProduct {
@@ -48,7 +54,10 @@ const BrowseStore = () => {
   const [addingProduct, setAddingProduct] = useState<StoreProduct | null>(null);
   const [storeSearchTerm, setStoreSearchTerm] = useState("");
   const [filteredStores, setFilteredStores] = useState<any[]>([]);
+<<<<<<< HEAD
   const [scanning, setScanning] = useState(false);
+=======
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
 
   useEffect(() => {
     loadStores();
@@ -211,6 +220,12 @@ const BrowseStore = () => {
         .from("store_prices")
         .update({
           unverified_price: priceVal,
+<<<<<<< HEAD
+=======
+          verified: false,
+          source: "shopper",
+          updated_by: user.id,
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
           updated_at: new Date().toISOString(),
         })
         .eq("id", existing.id);
@@ -223,7 +238,11 @@ const BrowseStore = () => {
       const { error } = await supabase.from("store_prices").insert({
         store_id: selectedStore.id,
         product_gtin: selectedProduct.product_gtin,
+<<<<<<< HEAD
         price: 0,
+=======
+        price: priceVal,
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
         unverified_price: priceVal,
         verified: false,
         source: "shopper",
@@ -282,6 +301,7 @@ const BrowseStore = () => {
     navigate("/");
   };
 
+<<<<<<< HEAD
   const getStoreMapUrl = () => {
     if (!selectedStore) return null;
     if (selectedStore.latitude && selectedStore.longitude) {
@@ -326,6 +346,8 @@ const BrowseStore = () => {
     }
   };
 
+=======
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
   const getDisplayPrice = (p: StoreProduct) => {
     if (p.verified) return p.price;
     return p.unverified_price ?? p.price;
@@ -419,7 +441,11 @@ const BrowseStore = () => {
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
+<<<<<<< HEAD
           <div className="flex-1">
+=======
+          <div>
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
             <h1 className="text-2xl font-bold text-foreground flex items-center gap-2">
               <Store className="h-6 w-6 text-primary" />
               {storeName}
@@ -428,6 +454,7 @@ const BrowseStore = () => {
               {filteredProducts.length} product{filteredProducts.length !== 1 ? "s" : ""} available
             </p>
           </div>
+<<<<<<< HEAD
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm" className="gap-1.5">
@@ -480,6 +507,8 @@ const BrowseStore = () => {
           <div className="relative flex justify-center text-xs uppercase">
             <span className="bg-background px-2 text-muted-foreground">or search manually</span>
           </div>
+=======
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
         </div>
 
         {/* Search */}

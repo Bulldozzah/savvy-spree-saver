@@ -243,6 +243,7 @@ export const ShoppingListManager = ({
     window.open(`sms:?body=${text}`, '_blank');
   };
 
+<<<<<<< HEAD
   const getStoreMapUrl = () => {
     if (!storeContactInfo) return null;
     const { latitude, longitude, address, location } = storeContactInfo;
@@ -321,6 +322,52 @@ export const ShoppingListManager = ({
     toast({ title: "Copied", description: "Store map link copied to clipboard" });
   };
 
+=======
+  const handleShareLocationWhatsApp = () => {
+    if (!storeContactInfo) {
+      toast({
+        title: "Store Not Selected",
+        description: "Please assign a store first",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    const address = storeContactInfo.address;
+    const latitude = storeContactInfo.latitude;
+    const longitude = storeContactInfo.longitude;
+    
+    if (!address && !latitude && !longitude) {
+      toast({
+        title: "Location Not Available",
+        description: "This store doesn't have address or coordinates on file",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    let locationText = "Store Location:\n";
+    
+    // Add full address if available
+    if (address) {
+      locationText += `Address: ${address}\n`;
+    }
+    
+    // Add coordinates and Google Maps link
+    if (latitude && longitude) {
+      locationText += `Coordinates: ${latitude}, ${longitude}\n`;
+      locationText += `Map: https://www.google.com/maps?q=${latitude},${longitude}`;
+    } else if (address) {
+      // If no coordinates, create a search link with the address
+      const encodedAddress = encodeURIComponent(address);
+      locationText += `Map: https://www.google.com/maps/search/?api=1&query=${encodedAddress}`;
+    }
+    
+    const text = encodeURIComponent(locationText);
+    window.open(`https://wa.me/?text=${text}`, '_blank');
+  };
+
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
   return (
     <div className="space-y-6">
       <Card>
@@ -454,6 +501,7 @@ export const ShoppingListManager = ({
                   {storeContactInfo?.contact ? `SMS ${storeContactInfo.contact}` : 'Share via SMS'}
                 </Button>
                 
+<<<<<<< HEAD
                 <div className="pt-3 border-t">
                   <h3 className="font-semibold mb-2 flex items-center gap-2">
                     <MapPin className="h-4 w-4" />
@@ -498,6 +546,17 @@ export const ShoppingListManager = ({
                     </Button>
                   </div>
                 </div>
+=======
+                <Button 
+                  onClick={handleShareLocationWhatsApp}
+                  className="w-full" 
+                  variant="outline"
+                  disabled={!assignedStoreId}
+                >
+                  <MapPin className="mr-2 h-4 w-4" />
+                  Share Store Location via WhatsApp
+                </Button>
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
               </div>
             </div>
           ) : (
@@ -542,6 +601,7 @@ export const ShoppingListManager = ({
                   </Button>
                 </div>
               </div>
+<<<<<<< HEAD
 
               {assignedStoreId && (
                 <div className="pt-3 border-t">
@@ -565,6 +625,8 @@ export const ShoppingListManager = ({
                   </div>
                 </div>
               )}
+=======
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
             </div>
           )}
         </CardContent>

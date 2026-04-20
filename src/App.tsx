@@ -24,7 +24,10 @@ import FluidDropdownDemo from "./pages/FluidDropdownDemo";
 import BarcodePriceScanner from "./pages/BarcodePriceScanner";
 import BrowseStore from "./pages/BrowseStore";
 import Features from "./pages/Features";
+<<<<<<< HEAD
 import LoginDemo from "./pages/LoginDemo";
+=======
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
 import NotFound from "./pages/NotFound";
 
 const AppContent = () => {
@@ -177,7 +180,10 @@ const AppContent = () => {
             <Route path="/hover-gradient-navbar-demo" element={<HoverGradientNavBarDemo />} />
             <Route path="/falling-pattern-demo" element={<FallingPatternDemo />} />
             <Route path="/fluid-dropdown-demo" element={<FluidDropdownDemo />} />
+<<<<<<< HEAD
             <Route path="/login-demo" element={<LoginDemo />} />
+=======
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
             <Route path="/auth" element={!user ? <Auth /> : <Navigate to="/" replace />} />
             <Route
               path="/admin"

@@ -35,7 +35,11 @@ const AboutUs = () => {
       <nav className="border-b">
         <div className="container mx-auto px-4 py-4 flex justify-between items-center">
           <Link to="/">
+<<<<<<< HEAD
             <h1 className="text-2xl font-bold">ShopMate</h1>
+=======
+            <h1 className="text-2xl font-bold">Savio-shop</h1>
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
           </Link>
           <div className="flex gap-4 items-center">
             <Link to="/">
@@ -60,7 +64,11 @@ const AboutUs = () => {
       <main className="container mx-auto px-4 py-16">
         <div className="max-w-4xl mx-auto">
           <h1 className="text-5xl font-extrabold text-center mb-6 text-foreground">
+<<<<<<< HEAD
             About ShopMate
+=======
+            About Savio-shop
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
           </h1>
           <p className="text-xl text-center text-muted-foreground mb-12">
             Empowering shoppers to save money through community-driven price comparison
@@ -68,14 +76,22 @@ const AboutUs = () => {
 
           <div className="prose prose-lg max-w-none mb-16">
             <p className="text-muted-foreground">
+<<<<<<< HEAD
               ShopMate is a revolutionary platform that brings together shoppers and stores in a transparent marketplace. 
+=======
+              Savio-shop is a revolutionary platform that brings together shoppers and stores in a transparent marketplace. 
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
               Our mission is to help you make informed purchasing decisions by providing real-time price comparisons across 
               multiple stores in your area.
             </p>
             <p className="text-muted-foreground mt-4">
               Built on the principle of community collaboration, our platform allows users to scan and share product prices, 
               creating a comprehensive database that benefits everyone. Whether you're planning your weekly grocery run or 
+<<<<<<< HEAD
               looking for the best deal on a specific item, ShopMate puts the power of information in your hands.
+=======
+              looking for the best deal on a specific item, Savio-shop puts the power of information in your hands.
+>>>>>>> 1249b16a4da0425343761d5500a53771fdaff876
             </p>
           </div>
 
